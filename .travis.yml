@@ -1,0 +1,11 @@
+sudo: required
+language: python
+python:
+  - "3.6"
+install:
+  - pip install -r requirements.txt
+script:
+  - python -m unittest discover
+after_success:
+  - coverage run --branch --omit=test/* -m unittest discover
+  - coverage html -d reports/coverage
