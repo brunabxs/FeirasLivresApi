@@ -6,7 +6,6 @@ funcionais da aplicação.
 import unittest
 import json
 from app import app
-from flask import jsonify
 from src.basedados import bd
 from test.helpers import *
 
