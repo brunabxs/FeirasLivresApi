@@ -27,11 +27,15 @@ class FeiraLivreBuilder:
     '''
     def __init__(self):
         ''' Construtor. '''
-        self.feira_livre = FeiraLivre('qualquer', 'qualquer')
+        self.feira_livre = FeiraLivre('qualquer', 'qualquer', 'qualquer', 'qualquer')
 
     def with_regiao(self, regiao):
         '''
         Modifica a região à qual a feira livre pertence.
+
+        Parâmetros
+        ==========
+        regiao [str] -- região à qual pertence a feira livre.
 
         Retorno
         =======
@@ -44,11 +48,45 @@ class FeiraLivreBuilder:
         '''
         Modifica o distrito ao qual a feira livre pertence.
 
+        Parâmetros
+        ==========
+        distrito [str] -- distrito ao qual pertence a feira livre.
+
         Retorno
         =======
         FeiraLivreBuilder -- instância do builder.
         '''
         self.feira_livre.distrito = distrito
+        return self
+
+    def with_nome(self, nome):
+        '''
+        Modifica o nome da feira livre.
+
+        Parâmetros
+        ==========
+        nome [str] -- nome da feira livre.
+
+        Retorno
+        =======
+        FeiraLivreBuilder -- instância do builder.
+        '''
+        self.feira_livre.nome = nome
+        return self
+
+    def with_bairro(self, bairro):
+        '''
+        Modifica o bairro ao qual a feira livre pertence.
+
+        Parâmetros
+        ==========
+        bairro [str] -- bairro ao qual pertence a feira livre.
+
+        Retorno
+        =======
+        FeiraLivreBuilder -- instância do builder.
+        '''
+        self.feira_livre.bairro = bairro
         return self
 
     def build(self):

@@ -14,12 +14,7 @@ bd.init_app(app)
 @app.route('/busca')
 def buscar():
     '''
-    Busca feira(s) livre(s) por região e/ou por distrito.
-
-    Argumentos
-    ==========
-    regiao [str] -- região à qual deve pertencer a feira.
-    distrito [str] -- distrito ao qual pertence a feira livre.
+    Busca feira(s) livre(s) por região e/ou distrito e/ou bairro e/ou nome.
 
     Retorno
     =======
@@ -27,11 +22,17 @@ def buscar():
     '''
     regiao = request.args.get('regiao')
     distrito = request.args.get('distrito')
+    nome = request.args.get('nome')
+    bairro = request.args.get('bairro')
     filtros = []
     if regiao is not None:
         filtros.append(FeiraLivre.regiao == regiao)
     if distrito is not None:
         filtros.append(FeiraLivre.distrito == distrito)
+    if nome is not None:
+        filtros.append(FeiraLivre.nome.like('%' + nome + '%'))
+    if bairro is not None:
+        filtros.append(FeiraLivre.bairro == bairro)
     if len(filtros) > 0:
         resultado = FeiraLivre.query.filter(and_(*filtros)).all()
     else:
