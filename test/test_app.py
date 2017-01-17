@@ -12,6 +12,7 @@ from test.helpers import *
 
 class TestApp(unittest.TestCase):
     ''' Mantém os testes relacionados à aplicação. '''
+    REGISTRO1, REGISTRO2 = '123', '456'
     REGIAO1, REGIAO2 = 'regiao1', 'regiao2'
     DISTRITO1, DISTRITO2 = 'distrito1', 'distrito2'
     BAIRRO1, BAIRRO2 = 'bairro1', 'bairro2'
@@ -248,9 +249,21 @@ class TestApp(unittest.TestCase):
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO1).with_bairro(self.BAIRRO1).with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO2).with_nome(self.NOME2).build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO1).with_nome(self.NOME3).build()
+        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO1) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME1) \
+                                          .build()
+        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO2) \
+                                          .with_nome(self.NOME2) \
+                                          .build()
+        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME3) \
+                                          .build()
         persistir(bd, feira_livre1, feira_livre2, feira_livre3)
         esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
         # Act
@@ -271,9 +284,21 @@ class TestApp(unittest.TestCase):
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO1).with_bairro(self.BAIRRO1).with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO2).with_nome(self.NOME2).build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO1).with_nome(self.NOME3).build()
+        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO1) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME1) \
+                                          .build()
+        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO2) \
+                                          .with_nome(self.NOME2) \
+                                          .build()
+        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME3) \
+                                          .build()
         persistir(bd, feira_livre1, feira_livre2, feira_livre3)
         esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
@@ -294,9 +319,21 @@ class TestApp(unittest.TestCase):
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO1).with_bairro(self.BAIRRO1).with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO2).with_nome(self.NOME2).build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO1).with_nome(self.NOME3).build()
+        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO1) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME1) \
+                                          .build()
+        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO2) \
+                                          .with_nome(self.NOME2) \
+                                          .build()
+        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME3) \
+                                          .build()
         persistir(bd, feira_livre1, feira_livre2, feira_livre3)
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
@@ -317,9 +354,21 @@ class TestApp(unittest.TestCase):
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO1).with_bairro(self.BAIRRO1).with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO2).with_nome(self.NOME2).build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO1).with_nome(self.NOME3).build()
+        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO1) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME1) \
+                                          .build()
+        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO2) \
+                                          .with_nome(self.NOME2) \
+                                          .build()
+        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME3) \
+                                          .build()
         persistir(bd, feira_livre1, feira_livre2, feira_livre3)
         esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
         # Act
@@ -341,9 +390,21 @@ class TestApp(unittest.TestCase):
         na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO1).with_bairro(self.BAIRRO1).with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO2).with_nome(self.NOME2).build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1).with_distrito(self.DISTRITO2).with_bairro(self.BAIRRO1).with_nome(self.NOME3).build()
+        feira_livre1 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO1) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME1) \
+                                          .build()
+        feira_livre2 = FeiraLivreBuilder().with_regiao(self.REGIAO2) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO2) \
+                                          .with_nome(self.NOME2) \
+                                          .build()
+        feira_livre3 = FeiraLivreBuilder().with_regiao(self.REGIAO1) \
+                                          .with_distrito(self.DISTRITO2) \
+                                          .with_bairro(self.BAIRRO1) \
+                                          .with_nome(self.NOME3) \
+                                          .build()
         persistir(bd, feira_livre1, feira_livre2, feira_livre3)
         esperado = {'feiras': [feira_livre1.dict]}
         # Act
@@ -370,6 +431,50 @@ class TestApp(unittest.TestCase):
         resposta = self.app.get('/busca')
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
+
+    def test_remover1(self):
+        '''
+        Dada uma feira livre com registro '123'
+        Quando removo a feira com registro '123'
+        Então a feira deve ser removida;
+              devo receber um JSON contendo a feira livre removida.
+        '''
+        # Arrange
+        feira_livre = FeiraLivreBuilder().with_registro(self.REGISTRO1).build()
+        persistir(bd, feira_livre)
+        esperado = {'feira': feira_livre.dict}
+        # Act
+        resposta = self.app.delete('/feiras?registro=' + self.REGISTRO1)
+        feira_livre = FeiraLivre.query \
+                                .filter(FeiraLivre.registro == self.REGISTRO1)\
+                                .first()
+        # Assert
+        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertIsNone(feira_livre)
+
+    def test_remover2(self):
+        '''
+        Dada uma feira livre com registro '123'
+        Quando removo a feira com registro '456'
+        Então a feira não deve ser removida;
+              devo receber um JSON contendo a mensagem de erro.
+        '''
+        # Arrange
+        feira_livre = FeiraLivreBuilder().with_registro(self.REGISTRO1).build()
+        persistir(bd, feira_livre)
+        esperado = {'mensagem': 'Feira livre com registro {0} não existe.'
+                                .format(self.REGISTRO2),
+                    'erro': 404}
+        # Act
+        resposta = self.app.delete('/feiras?registro=' + self.REGISTRO2)
+        feira_livre = FeiraLivre.query \
+                                .filter(FeiraLivre.registro == self.REGISTRO1)\
+                                .first()
+        # Assert
+        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(resposta.status_code, 404)
+        self.assertIsNotNone(feira_livre)
 
 if __name__ == '__main__':
     unittest.main()

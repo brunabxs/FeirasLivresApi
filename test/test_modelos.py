@@ -9,6 +9,7 @@ from test.helpers import FeiraLivreBuilder
 
 class TestFeiraLivre(unittest.TestCase):
     ''' Mantém os testes relacionados ao modelo FeiraLivre. '''
+    REGISTRO = '123'
     REGIAO = 'regiao'
     DISTRITO = 'distrito'
     BAIRRO = 'bairro'
@@ -16,17 +17,23 @@ class TestFeiraLivre(unittest.TestCase):
 
     def test_dict(self):
         '''
-        Dadas uma feira livre na região 'regiao', no distrito 'distrito', \
-        no bairro 'bairro' e nome 'nome'
+        Dadas uma feira livre com registro '123' na região 'regiao', \
+        no distrito 'distrito', no bairro 'bairro' e nome 'nome'
         Quando dict é chamado
         Então devo receber um dict com os dados da feira livre.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_regiao(self.REGIAO).with_distrito(self.DISTRITO).with_bairro(self.BAIRRO).with_nome(self.NOME).build()
+        feira_livre = FeiraLivreBuilder().with_registro(self.REGISTRO) \
+                                         .with_regiao(self.REGIAO) \
+                                         .with_distrito(self.DISTRITO) \
+                                         .with_bairro(self.BAIRRO) \
+                                         .with_nome(self.NOME) \
+                                         .build()
         esperado = {'regiao': self.REGIAO,
                     'bairro': self.BAIRRO,
                     'nome': self.NOME,
-                    'distrito': self.DISTRITO}
+                    'distrito': self.DISTRITO,
+                    'registro': self.REGISTRO}
         # Act
         resposta = feira_livre.dict
         # Assert

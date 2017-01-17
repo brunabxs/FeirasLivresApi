@@ -11,6 +11,32 @@ app.config.from_object('config.ProductionConfig')
 bd.init_app(app)
 
 
+@app.route('/feiras', methods=['DELETE'])
+def remover():
+    '''
+    Remove uma feira livre dado seu registro.
+    Se a feira não existir na base de dados, retorna código 404.
+
+    Retorno
+    =======
+    str -- json contendo a feira removida ou mensagem de erro.
+    '''
+    registro = request.args.get('registro')
+    feira_livre = FeiraLivre.query.filter(FeiraLivre.registro == registro) \
+                                  .first()
+    if feira_livre is None:
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} não existe.'
+                                        .format(registro),
+                            'erro': 404})
+        resposta.status_code = 404
+    else:
+        bd.session.delete(feira_livre)
+        bd.session.commit()
+        resposta = jsonify({'feira': feira_livre.dict})
+        resposta.status_code = 200
+    return resposta
+
+
 @app.route('/busca')
 def buscar():
     '''

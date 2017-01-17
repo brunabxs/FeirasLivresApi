@@ -27,7 +27,22 @@ class FeiraLivreBuilder:
     '''
     def __init__(self):
         ''' Construtor. '''
-        self.feira_livre = FeiraLivre('qualquer', 'qualquer', 'qualquer', 'qualquer')
+        self.feira_livre = FeiraLivre('qualquer', 'qualquer', 'qualquer', 'qualquer', 'qualquer')
+
+    def with_registro(self, registro):
+        '''
+        Modifica o registro da feira livre.
+
+        Parâmetros
+        ==========
+        registro [str] -- registro da feira livre.
+
+        Retorno
+        =======
+        FeiraLivreBuilder -- instância do builder.
+        '''
+        self.feira_livre.registro = registro
+        return self
 
     def with_regiao(self, regiao):
         '''
