@@ -1,6 +1,10 @@
-''' Módulo responsável por definir os modelos que representam a base de dados. '''
+''' Módulo responsável por definir os modelos que representam a base de \
+dados. '''
 
 from src.basedados import bd
+from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 
 def converter_dict(elemento):
@@ -21,6 +25,36 @@ def converter_dict(elemento):
     return elemento.dict
 
 
+def buscar_ou_criar(sessao, modelo, commit=False, **kwargs):
+    '''
+    Recupera um elemento dadas suas informações.
+    Caso não seja encontrado, cria.
+
+    Parâmetros
+    ==========
+    sessao [Session] -- sessão.
+    modelo [Model] -- modelo.
+    commit [bool] -- informa se faz ou não commit na sessão.
+    kwargs [] -- informações pelas qual a entidade será \
+    procurada ou criada.
+
+    Retorno
+    =======
+    [] -- instância do modelo que foi encontrada ou criada.
+    '''
+    consulta = sessao.query(modelo).filter_by(**kwargs)
+    instancia = consulta.first()
+    if instancia:
+        return instancia
+    else:
+        instancia = modelo(**kwargs)
+        sessao.add(instancia)
+        if commit:
+            sessao.commit()
+        sessao.flush()
+        return instancia
+
+
 class Subprefeitura(bd.Model):
     '''
     Representa a subprefeitura.
@@ -32,9 +66,9 @@ class Subprefeitura(bd.Model):
     nome [str] -- nome da subprefeitura.
     '''
     __tablename__ = 'Subprefeitura'
-    id = bd.Column(bd.Integer, primary_key=True)
-    codigo = bd.Column(bd.String(5), unique=True)
-    nome = bd.Column(bd.String(80))
+    id = Column(Integer, primary_key=True)
+    codigo = Column(String(5), unique=True)
+    nome = Column(String(80))
 
     @property
     def dict(self):
@@ -62,11 +96,11 @@ class Distrito(bd.Model):
     subprefeitura [Subprefeitura] -- subprefeitura à qual pertence o distrito.
     '''
     __tablename__ = 'Distrito'
-    id = bd.Column(bd.Integer, primary_key=True)
-    codigo = bd.Column(bd.String(5), unique=True)
-    nome = bd.Column(bd.String(80))
-    subprefeitura_id = bd.Column(bd.Integer, bd.ForeignKey('Subprefeitura.id'))
-    subprefeitura = bd.relationship('Subprefeitura')
+    id = Column(Integer, primary_key=True)
+    codigo = Column(String(5), unique=True)
+    nome = Column(String(80))
+    subprefeitura_id = Column(Integer, ForeignKey('Subprefeitura.id'))
+    subprefeitura = relationship('Subprefeitura')
 
     @property
     def dict(self):
@@ -92,8 +126,8 @@ class Regiao5(bd.Model):
     nome [str] -- nome da região.
     '''
     __tablename__ = 'Regiao5'
-    id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80), unique=True)
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(80), unique=True)
 
     @property
     def dict(self):
@@ -117,8 +151,8 @@ class Regiao8(bd.Model):
     nome [str] -- nome da região.
     '''
     __tablename__ = 'Regiao8'
-    id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80), unique=True)
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(80), unique=True)
 
     @property
     def dict(self):
@@ -144,10 +178,10 @@ class Bairro(bd.Model):
     distrito [Distrito] -- distrito municipal ao qual pertence o bairro.
     '''
     __tablename__ = 'Bairro'
-    id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80), unique=True)
-    distrito_id = bd.Column(bd.Integer, bd.ForeignKey('Distrito.id'))
-    distrito = bd.relationship('Distrito')
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(80), unique=True)
+    distrito_id = Column(Integer, ForeignKey('Distrito.id'))
+    distrito = relationship('Distrito')
 
     @property
     def dict(self):
@@ -172,8 +206,8 @@ class Logradouro(bd.Model):
     nome [str] -- nome do logradouro.
     '''
     __tablename__ = 'Logradouro'
-    id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80), unique=True)
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(80), unique=True)
 
     @property
     def dict(self):
@@ -185,6 +219,7 @@ class Logradouro(bd.Model):
         Dict -- representação do objeto como um dict.
         '''
         return {'nome': self.nome}
+
 
 class Endereco(bd.Model):
     '''
@@ -209,24 +244,24 @@ class Endereco(bd.Model):
     area_ponderacao [str] -- área de ponderação (agrupamento de setores censitários) do endereço.
     '''
     __tablename__ = 'Endereco'
-    id = bd.Column(bd.Integer, primary_key=True)
-    logradouro_id = bd.Column(bd.Integer, bd.ForeignKey('Logradouro.id'))
-    logradouro = bd.relationship('Logradouro')
-    numero = bd.Column(bd.String(10))
-    referencia = bd.Column(bd.String(255))
-    bairro_id = bd.Column(bd.Integer, bd.ForeignKey('Bairro.id'))
-    bairro = bd.relationship('Bairro')
-    regiao5_id = bd.Column(bd.Integer, bd.ForeignKey('Regiao5.id'))
-    regiao5 = bd.relationship('Regiao5')
-    regiao8_id = bd.Column(bd.Integer, bd.ForeignKey('Regiao8.id'))
-    regiao8 = bd.relationship('Regiao8')
-    latitude = bd.Column(bd.Float)
-    longitude = bd.Column(bd.Float)
-    setor_censitario = bd.Column(bd.String(50))
-    area_ponderacao = bd.Column(bd.String(50))
-    __table_args__ = (bd.UniqueConstraint('logradouro_id', 'bairro_id',
-                                          'regiao5_id', 'regiao8_id',
-                                          'numero', name='endereco_UK'),)
+    id = Column(Integer, primary_key=True)
+    logradouro_id = Column(Integer, ForeignKey('Logradouro.id'))
+    logradouro = relationship('Logradouro')
+    numero = Column(String(10))
+    referencia = Column(String(255))
+    bairro_id = Column(Integer, ForeignKey('Bairro.id'))
+    bairro = relationship('Bairro')
+    regiao5_id = Column(Integer, ForeignKey('Regiao5.id'))
+    regiao5 = relationship('Regiao5')
+    regiao8_id = Column(Integer, ForeignKey('Regiao8.id'))
+    regiao8 = relationship('Regiao8')
+    latitude = Column(Float)
+    longitude = Column(Float)
+    setor_censitario = Column(String(50))
+    area_ponderacao = Column(String(50))
+    __table_args__ = (UniqueConstraint('logradouro_id', 'bairro_id',
+                                       'regiao5_id', 'regiao8_id',
+                                       'numero', name='endereco_UK'),)
 
     @property
     def dict(self):
@@ -263,12 +298,12 @@ class FeiraLivre(bd.Model):
     endereco [Endereco] -- endereço onde se localiza a feira livre.
     '''
     __tablename__ = 'FeiraLivre'
-    id = bd.Column(bd.Integer, primary_key=True)
-    identificador = bd.Column(bd.Integer)
-    nome = bd.Column(bd.String(80))
-    registro = bd.Column(bd.String(50), unique=True)
-    endereco_id = bd.Column(bd.Integer, bd.ForeignKey('Endereco.id'))
-    endereco = bd.relationship('Endereco')
+    id = Column(Integer, primary_key=True)
+    identificador = Column(Integer)
+    nome = Column(String(80))
+    registro = Column(String(50), unique=True)
+    endereco_id = Column(Integer, ForeignKey('Endereco.id'))
+    endereco = relationship('Endereco')
 
     @property
     def dict(self):

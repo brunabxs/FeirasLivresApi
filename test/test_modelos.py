@@ -5,13 +5,15 @@ modelos.
 
 import unittest
 import unittest.mock as mock
-from src.modelos import converter_dict
+from app import app
+from src.basedados import bd
+from src.modelos import converter_dict, buscar_ou_criar
 from src.modelos import Subprefeitura, Distrito, Regiao5, Regiao8
 from src.modelos import Bairro, Logradouro, Endereco, FeiraLivre
 
 
-class TestFuncoes(unittest.TestCase):
-    ''' Mantém os testes unitários relacionados às funções. '''
+class TestConverterDict(unittest.TestCase):
+    ''' Mantém os testes unitários relacionados à função converter_dict. '''
 
     def test_converter_dict1(self):
         '''
@@ -42,6 +44,89 @@ class TestFuncoes(unittest.TestCase):
             # Act
             resposta = converter_dict(elemento)
         # Assert
+        self.assertEqual(resposta, esperado)
+
+
+class TestBuscarOuCriar(unittest.TestCase):
+    ''' Mantém os testes unitários relacionados à função buscar_ou_criar. '''
+
+    def setUp(self):
+        app.config.from_object('config.TestingConfig')
+        self.app = app.test_client()
+        self.contexto = app.app_context()
+        self.contexto.push()
+        bd.create_all()
+
+    def tearDown(self):
+        bd.session.remove()
+        bd.drop_all()
+        self.contexto.pop()
+
+    def test_criar(self):
+        '''
+        Dado um elemento com atributo codigo
+        Quando se procura pelo elemento de codigo='123'
+        Então deve persistir o elemento (com código '123') e
+              deve existir apenas um elemento no final.
+        '''
+        # Arrange
+        # Act
+        resposta = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
+        # Assert
+        self.assertEqual(resposta.codigo, '123')
+        self.assertEqual(resposta.id, 1)
+        total = Subprefeitura.query.count()
+        self.assertEqual(total, 1)
+
+    def test_buscar(self):
+        '''
+        Dado um elemento com atributo codigo='123'
+        Quando se procura pelo elemento de codigo='123'
+        Então não deve persistir outro elemento (com código '123') e
+              deve existir apenas um elemento no final e
+              deve retornar o elemento existente.
+        '''
+        # Arrange
+        esperado = Subprefeitura(codigo='123')
+        bd.session.add(esperado)
+        bd.session.commit()
+        bd.session.flush()
+        # Act
+        resposta = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
+        # Assert
+        self.assertEqual(resposta, esperado)
+        total = Subprefeitura.query.count()
+        self.assertEqual(total, 1)
+
+    def test_commit1(self):
+        '''
+        Dado um elemento a ser inserido
+        Quando a opção de commit está ligada (commit=True)
+        Então a inserção não é desfeita num rollback (sqlalchemy inicia nova \
+        sessão após commit).
+        '''
+        # Arrange
+        esperado = 1
+        # Act
+        buscar_ou_criar(bd.session, Subprefeitura, True, codigo='123')
+        bd.session.rollback()
+        # Assert
+        resposta = Subprefeitura.query.count()
+        self.assertEqual(resposta, esperado)
+
+    def test_commit2(self):
+        '''
+        Dado um elemento a ser inserido
+        Quando a opção de commit está desligada (commit=False)
+        Então a inserção é desfeita num rollback.
+        '''
+        # Arrange
+        esperado = 0
+        # Act
+        buscar_ou_criar(bd.session, Subprefeitura, False, codigo='123')
+        bd.session.rollback()
+        # Assert
+        resposta = Subprefeitura.query.count()
         self.assertEqual(resposta, esperado)
 
 

@@ -4,10 +4,120 @@ funcionais da aplicação.
 '''
 
 import unittest
+import unittest.mock as mock
 import json
-from app import app
+from app import app, verificar_campos_obrigatorios, identificar_entidade_colunas
 from src.basedados import bd
 from test.helpers import *
+
+
+class TestVerificarCamposObrigatorios(unittest.TestCase):
+    ''' Mantém os testes unitários relacionados à função \
+    verificar_campos_obrigatorios. '''
+
+    def test_todos_presentes(self):
+        '''
+        Dado um json contendo todos os campos obrigatórios \
+        presentes
+        Quando o verifico se todos estão presentes
+        Então devo receber uma lista vazia.
+        '''
+        # Arrange
+        json = {
+            'identificador': 1,
+            'latitude': -123,
+            'longitude': 456,
+            'setor_censitario': 'setor',
+            'area_ponderacao': 'area',
+            'cod_distrito': 'coddist',
+            'distrito': 'dist',
+            'cod_subpref': 'codsubpref',
+            'subprefeitura': 'subpref',
+            'regiao5': 'reg',
+            'regiao8': 'reg2',
+            'nome': 'nome',
+            'registro': 'registro',
+            'logradouro': 'logradouro',
+            'numero': 'num',
+            'bairro': 'bairro',
+            'referencia': 'referencia'
+        }
+        esperado = []
+        # Act
+        resposta = verificar_campos_obrigatorios(json)
+        # Assert
+        self.assertEqual(resposta, esperado)
+
+    def test_ao_menos_um_faltando(self):
+        '''
+        Dado um json contendo ao menos um dos campos obrigatórios \
+        faltando
+        Quando o verifico se todos estão presentes
+        Então devo receber uma lista contendo o campo que está \
+        faltando.
+        '''
+        # Arrange
+        json = {
+            # 'identificador': 1,
+            'latitude': -123,
+            'longitude': 456,
+            'setor_censitario': 'setor',
+            'area_ponderacao': 'area',
+            'cod_distrito': 'coddist',
+            'distrito': 'dist',
+            'cod_subpref': 'codsubpref',
+            'subprefeitura': 'subpref',
+            'regiao5': 'reg',
+            'regiao8': 'reg2',
+            'nome': 'nome',
+            'registro': 'registro',
+            'logradouro': 'logradouro',
+            'numero': 'num',
+            'bairro': 'bairro',
+            'referencia': 'referencia'
+        }
+        esperado = ['identificador']
+        # Act
+        resposta = verificar_campos_obrigatorios(json)
+        # Assert
+        self.assertEqual(resposta, esperado)
+
+
+class TestIdentificarEntidadeColunas(unittest.TestCase):
+    ''' Mantém os testes unitários relacionados à função \
+    identificar_entidade_colunas. '''
+
+    def test_coluna_unica(self):
+        '''
+        Dada uma mensagem de violação de índice único em que o \
+        índice é composto por apenas uma coluna da tabela
+        Quando o identifico a entidade e a coluna
+        Então devo receber uma tupla contendo o nome da entidade \
+        e o nome da coluna, respectivamente.
+        '''
+        # Arrange
+        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: Distrito.codigo'
+        esperado = ('Distrito', ('codigo',))
+        # Act
+        resposta = identificar_entidade_colunas(mensagem)
+        # Assert
+        self.assertEqual(resposta, esperado)
+
+    def test_varias_colunas(self):
+        '''
+        Dada uma mensagem de violação de índice único em que o \
+        índice é composto por apenas mais de uma coluna da tabela
+        Quando o identifico a entidade e as colunas
+        Então devo receber uma tupla contendo o nome da entidade \
+        e os nomes das colunas, respectivamente.
+        '''
+        # Arrange
+        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: Distrito.codigo, Distrito.nome'
+        esperado = ('Distrito', ('codigo', 'nome'))
+        # Act
+        resposta = identificar_entidade_colunas(mensagem)
+        # Assert
+        self.assertEqual(resposta, esperado)
 
 
 class TestApp(unittest.TestCase):
@@ -23,14 +133,14 @@ class TestApp(unittest.TestCase):
     def setUp(self):
         app.config.from_object('config.TestingConfig')
         self.app = app.test_client()
-        self.app_context = app.app_context()
-        self.app_context.push()
+        self.contexto = app.app_context()
+        self.contexto.push()
         bd.create_all()
 
     def tearDown(self):
         bd.session.remove()
         bd.drop_all()
-        self.app_context.pop()
+        self.contexto.pop()
 
     def test_buscar1(self):
         '''
@@ -516,6 +626,124 @@ class TestApp(unittest.TestCase):
         self.assertEqual(json.loads(resposta.data), esperado)
         self.assertEqual(resposta.status_code, 404)
         self.assertIsNotNone(feira_livre)
+
+    @mock.patch('src.basedados.bd.session.commit')
+    def test_adicionar(self, mock_commit):
+        '''
+        Dado um json com todos os dados necessários para o cadastro \
+        de uma feira livre
+        Quando adiciono a feira
+        Então devo receber um JSON contendo a feira inserida.
+        '''
+        # Arrange
+        dado = {
+            'identificador': self.IDENTIFICADOR1,
+            'latitude': -123,
+            'longitude': 456,
+            'setor_censitario': 'setor',
+            'area_ponderacao': 'area',
+            'cod_distrito': 'coddist',
+            'distrito': self.DISTRITO1,
+            'cod_subpref': 'codsubpref',
+            'subprefeitura': 'subpref',
+            'regiao5': self.REGIAO1,
+            'regiao8': self.REGIAO2,
+            'nome': self.NOME1,
+            'registro': self.REGISTRO1,
+            'logradouro': 'logradouro',
+            'numero': 'num',
+            'bairro': self.BAIRRO1,
+            'referencia': 'referencia'
+        }
+        feira_livre = FeiraLivreBuilder().from_dict(dado).build()
+        esperado = {'feira': feira_livre.dict}
+        # Act
+        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        feira_livre = FeiraLivre.query \
+                                .filter(FeiraLivre.registro == self.REGISTRO1)\
+                                .first()
+        # Assert
+        mock_commit.assert_called_once()
+        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(resposta.status_code, 200)
+
+    @mock.patch('src.basedados.bd.session.rollback')
+    def test_adicionar2(self, mock_rollback):
+        '''
+        Dados uma feira livre cadastrada
+              um json para cadastro de nova feira em que há \
+        violação de índice unico.
+        Quando adiciono a feira
+        Então devo receber um JSON contendo a identificação do(s) campo(s) \
+        incorreto(s).
+        '''
+        # Arrange
+        dado = {
+            'identificador': self.IDENTIFICADOR1,
+            'latitude': -123,
+            'longitude': 456,
+            'setor_censitario': 'setor',
+            'area_ponderacao': 'area',
+            'cod_distrito': 'coddist',
+            'distrito': self.DISTRITO1,
+            'cod_subpref': 'codsubpref',
+            'subprefeitura': 'subpref',
+            'regiao5': self.REGIAO1,
+            'regiao8': self.REGIAO2,
+            'nome': self.NOME1,
+            'registro': self.REGISTRO1,
+            'logradouro': 'logradouro',
+            'numero': 'num',
+            'bairro': self.BAIRRO1,
+            'referencia': 'referencia'
+        }
+        FeiraLivreBuilder(bd).from_dict(dado).build()
+        dado['distrito'] = self.DISTRITO2  # quebra do índice de Distrito
+        FeiraLivreBuilder().from_dict(dado).build()
+        esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter valores diferentes em codigo.',
+                    'erro': 400}
+        # Act
+        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        # Assert
+        mock_rollback.assert_called_once()
+        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(resposta.status_code, 400)
+
+    def test_adicionar3(self):
+        '''
+        Dado um json com alguns dados faltando para o cadastro \
+        de uma feira livre
+        Quando adiciono a feira
+        Então devo receber um JSON contendo a identificação do(s) campo(s) \
+        que estão faltando.
+        '''
+        # Arrange
+        dado = {
+            # 'identificador': self.IDENTIFICADOR1,
+            'latitude': -123,
+            'longitude': 456,
+            'setor_censitario': 'setor',
+            'area_ponderacao': 'area',
+            'cod_distrito': 'coddist',
+            # 'distrito': self.DISTRITO1,
+            'cod_subpref': 'codsubpref',
+            'subprefeitura': 'subpref',
+            'regiao5': self.REGIAO1,
+            'regiao8': self.REGIAO2,
+            'nome': self.NOME1,
+            'registro': self.REGISTRO1,
+            'logradouro': 'logradouro',
+            'numero': 'num',
+            'bairro': self.BAIRRO1,
+            'referencia': 'referencia'
+        }
+        esperado = {'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): distrito, identificador.',
+                    'erro': 400}
+        # Act
+        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        # Assert
+        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(resposta.status_code, 400)
 
 
 if __name__ == '__main__':
