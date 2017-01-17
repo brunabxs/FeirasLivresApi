@@ -33,7 +33,7 @@ class Subprefeitura(bd.Model):
     '''
     __tablename__ = 'Subprefeitura'
     id = bd.Column(bd.Integer, primary_key=True)
-    codigo = bd.Column(bd.String(5))
+    codigo = bd.Column(bd.String(5), unique=True)
     nome = bd.Column(bd.String(80))
 
     @property
@@ -63,7 +63,7 @@ class Distrito(bd.Model):
     '''
     __tablename__ = 'Distrito'
     id = bd.Column(bd.Integer, primary_key=True)
-    codigo = bd.Column(bd.String(5))
+    codigo = bd.Column(bd.String(5), unique=True)
     nome = bd.Column(bd.String(80))
     subprefeitura_id = bd.Column(bd.Integer, bd.ForeignKey('Subprefeitura.id'))
     subprefeitura = bd.relationship('Subprefeitura')
@@ -93,7 +93,7 @@ class Regiao5(bd.Model):
     '''
     __tablename__ = 'Regiao5'
     id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80))
+    nome = bd.Column(bd.String(80), unique=True)
 
     @property
     def dict(self):
@@ -118,7 +118,7 @@ class Regiao8(bd.Model):
     '''
     __tablename__ = 'Regiao8'
     id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80))
+    nome = bd.Column(bd.String(80), unique=True)
 
     @property
     def dict(self):
@@ -145,7 +145,7 @@ class Bairro(bd.Model):
     '''
     __tablename__ = 'Bairro'
     id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80))
+    nome = bd.Column(bd.String(80), unique=True)
     distrito_id = bd.Column(bd.Integer, bd.ForeignKey('Distrito.id'))
     distrito = bd.relationship('Distrito')
 
@@ -173,7 +173,7 @@ class Logradouro(bd.Model):
     '''
     __tablename__ = 'Logradouro'
     id = bd.Column(bd.Integer, primary_key=True)
-    nome = bd.Column(bd.String(80))
+    nome = bd.Column(bd.String(80), unique=True)
 
     @property
     def dict(self):
@@ -203,8 +203,8 @@ class Endereco(bd.Model):
     regiao5 [regiao5] -- regiao5 do endereço.
     regiao8_id [int] -- id da regiao8 do endereço.
     regiao8 [regiao8] -- regiao8 do endereço.
-    latitude [real] -- latitude da localização do endereço no território do Município.
-    longitude [real] -- longitude da localização do endereço no território do Município.
+    latitude [float] -- latitude da localização do endereço no território do Município.
+    longitude [float] -- longitude da localização do endereço no território do Município.
     setor_censitario [str] -- setor censitário do endereço.
     area_ponderacao [str] -- área de ponderação (agrupamento de setores censitários) do endereço.
     '''
@@ -220,10 +220,13 @@ class Endereco(bd.Model):
     regiao5 = bd.relationship('Regiao5')
     regiao8_id = bd.Column(bd.Integer, bd.ForeignKey('Regiao8.id'))
     regiao8 = bd.relationship('Regiao8')
-    latitude = bd.Column(bd.Numeric)
-    longitude = bd.Column(bd.Numeric)
+    latitude = bd.Column(bd.Float)
+    longitude = bd.Column(bd.Float)
     setor_censitario = bd.Column(bd.String(50))
     area_ponderacao = bd.Column(bd.String(50))
+    __table_args__ = (bd.UniqueConstraint('logradouro_id', 'bairro_id',
+                                          'regiao5_id', 'regiao8_id',
+                                          'numero', name='endereco_UK'),)
 
     @property
     def dict(self):
@@ -263,7 +266,7 @@ class FeiraLivre(bd.Model):
     id = bd.Column(bd.Integer, primary_key=True)
     identificador = bd.Column(bd.Integer)
     nome = bd.Column(bd.String(80))
-    registro = bd.Column(bd.String(50))
+    registro = bd.Column(bd.String(50), unique=True)
     endereco_id = bd.Column(bd.Integer, bd.ForeignKey('Endereco.id'))
     endereco = bd.relationship('Endereco')
 

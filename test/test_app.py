@@ -12,7 +12,9 @@ from test.helpers import *
 
 class TestApp(unittest.TestCase):
     ''' Mantém os testes relacionados à aplicação. '''
-    REGISTRO1, REGISTRO2 = '123', '456'
+    COD1, COD2 = 'cod1', 'cod2'
+    IDENTIFICADOR1, IDENTIFICADOR2 = 1, 2
+    REGISTRO1, REGISTRO2, REGISTRO3 = '123', '456', '789'
     REGIAO1, REGIAO2 = 'regiao1', 'regiao2'
     DISTRITO1, DISTRITO2 = 'distrito1', 'distrito2'
     BAIRRO1, BAIRRO2 = 'bairro1', 'bairro2'
@@ -37,8 +39,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira livre na lista de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_regiao5(self.REGIAO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
         resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
@@ -52,8 +53,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo uma lista vazia de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_regiao5(self.REGIAO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
         esperado = {'feiras': []}
         # Act
         resposta = self.app.get('/busca?regiao5=' + self.REGIAO2)
@@ -68,9 +68,12 @@ class TestApp(unittest.TestCase):
         de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1).build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO1).build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
@@ -84,8 +87,9 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira livre na lista de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_distrito(self.DISTRITO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_cod_distrito(self.COD1) \
+                                           .with_distrito(self.DISTRITO1) \
+                                           .build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
         resposta = self.app.get('/busca?distrito=' + self.DISTRITO1)
@@ -99,8 +103,9 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo uma lista vazia de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_distrito(self.DISTRITO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_cod_distrito(self.COD1) \
+                                           .with_distrito(self.DISTRITO1) \
+                                           .build()
         esperado = {'feiras': []}
         # Act
         resposta = self.app.get('/busca?distrito=' + self.DISTRITO2)
@@ -115,9 +120,14 @@ class TestApp(unittest.TestCase):
         de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_distrito(self.DISTRITO1).build()
-        feira_livre2 = FeiraLivreBuilder().with_distrito(self.DISTRITO1).build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?distrito=' + self.DISTRITO1)
@@ -131,8 +141,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira livre na lista de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_nome(self.NOME1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
         resposta = self.app.get('/busca?nome=' + self.NOME1)
@@ -146,8 +155,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo uma lista vazia de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_nome(self.NOME1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
         esperado = {'feiras': []}
         # Act
         resposta = self.app.get('/busca?nome=' + self.NOME2)
@@ -162,9 +170,12 @@ class TestApp(unittest.TestCase):
         de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_nome(self.NOME1).build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?nome=' + self.NOME1)
@@ -180,9 +191,12 @@ class TestApp(unittest.TestCase):
         de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_nome(self.NOME1).build()
-        feira_livre2 = FeiraLivreBuilder().with_nome(self.NOME2).build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?nome=' + self.NOME1)
@@ -196,8 +210,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira livre na lista de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_bairro(self.BAIRRO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
         resposta = self.app.get('/busca?bairro=' + self.BAIRRO1)
@@ -211,8 +224,7 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo uma lista vazia de feiras.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_bairro(self.BAIRRO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
         esperado = {'feiras': []}
         # Act
         resposta = self.app.get('/busca?bairro=' + self.BAIRRO2)
@@ -227,9 +239,12 @@ class TestApp(unittest.TestCase):
         de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_bairro(self.BAIRRO1).build()
-        feira_livre2 = FeiraLivreBuilder().with_bairro(self.BAIRRO1).build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?bairro=' + self.BAIRRO1)
@@ -243,28 +258,33 @@ class TestApp(unittest.TestCase):
               uma feira livre na região 'regiao2', no distrito 'distrito2', \
         no bairro 'bairro2' e nome 'nome1a' e
               uma feira livre na região 'regiao1', no distrito 'distrito2', \
-        no bairro 'bairro1' e nome 'nome2'
+        no bairro 'bairro2' e nome 'nome2'
         Quando o busco por regiao5='regiao1'
         Então devo receber um JSON contendo a primeira e a terceira feiras \
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO1) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME1) \
-                                          .build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO2) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO2) \
-                                          .with_nome(self.NOME2) \
-                                          .build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME3) \
-                                          .build()
-        persistir(bd, feira_livre1, feira_livre2, feira_livre3)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO2) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
+        feira_livre3 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO3) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME3) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
         # Act
         resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
@@ -278,28 +298,33 @@ class TestApp(unittest.TestCase):
               uma feira livre na região 'regiao2', no distrito 'distrito2', \
         no bairro 'bairro2' e nome 'nome1a' e
               uma feira livre na região 'regiao1', no distrito 'distrito2', \
-        no bairro 'bairro1' e nome 'nome2'
+        no bairro 'bairro2' e nome 'nome2'
         Quando o busco por distrito='distrito2'
         Então devo receber um JSON contendo a segunda e a terceira feiras \
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO1) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME1) \
-                                          .build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO2) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO2) \
-                                          .with_nome(self.NOME2) \
-                                          .build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME3) \
-                                          .build()
-        persistir(bd, feira_livre1, feira_livre2, feira_livre3)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO2) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
+        feira_livre3 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO3) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME3) \
+                                            .build()
         esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
         resposta = self.app.get('/busca?distrito=' + self.DISTRITO2)
@@ -313,28 +338,33 @@ class TestApp(unittest.TestCase):
               uma feira livre na região 'regiao2', no distrito 'distrito2', \
         no bairro 'bairro2' e nome 'nome1a' e
               uma feira livre na região 'regiao1', no distrito 'distrito2', \
-        no bairro 'bairro1' e nome 'nome2'
+        no bairro 'bairro2' e nome 'nome2'
         Quando o busco por nome='nome1'
         Então devo receber um JSON contendo a primeira e a segunda feiras \
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO1) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME1) \
-                                          .build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO2) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO2) \
-                                          .with_nome(self.NOME2) \
-                                          .build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME3) \
-                                          .build()
-        persistir(bd, feira_livre1, feira_livre2, feira_livre3)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO2) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
+        feira_livre3 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO3) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME3) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca?nome=' + self.NOME1)
@@ -348,31 +378,36 @@ class TestApp(unittest.TestCase):
               uma feira livre na região 'regiao2', no distrito 'distrito2', \
         no bairro 'bairro2' e nome 'nome1a' e
               uma feira livre na região 'regiao1', no distrito 'distrito2', \
-        no bairro 'bairro1' e nome 'nome2'
-        Quando o busco por bairro='bairro1'
-        Então devo receber um JSON contendo a primeira e a terceira feiras \
+        no bairro 'bairro2' e nome 'nome2'
+        Quando o busco por bairro='bairro2'
+        Então devo receber um JSON contendo a segunda e a terceira feiras \
         livres (somente) na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO1) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME1) \
-                                          .build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO2) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO2) \
-                                          .with_nome(self.NOME2) \
-                                          .build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME3) \
-                                          .build()
-        persistir(bd, feira_livre1, feira_livre2, feira_livre3)
-        esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO2) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
+        feira_livre3 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO3) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME3) \
+                                            .build()
+        esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/busca?bairro=' + self.BAIRRO1)
+        resposta = self.app.get('/busca?bairro=' + self.BAIRRO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -383,34 +418,39 @@ class TestApp(unittest.TestCase):
               uma feira livre na região 'regiao2', no distrito 'distrito2', \
         no bairro 'bairro2' e nome 'nome1a' e
               uma feira livre na região 'regiao1', no distrito 'distrito2', \
-        no bairro 'bairro1' e nome 'nome2'
-        Quando o busco por regiao5='regiao1' e distrito='distrito1' e \
-        bairro='bairro1' e nome='nome1'
-        Então devo receber um JSON contendo a primeira feira livre (somente) \
+        no bairro 'bairro2' e nome 'nome2'
+        Quando o busco por regiao5='regiao2' e distrito='distrito2' e \
+        bairro='bairro2' e nome='nome1'
+        Então devo receber um JSON contendo a segunda feira livre (somente) \
         na lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO1) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME1) \
-                                          .build()
-        feira_livre2 = FeiraLivreBuilder().with_regiao5(self.REGIAO2) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO2) \
-                                          .with_nome(self.NOME2) \
-                                          .build()
-        feira_livre3 = FeiraLivreBuilder().with_regiao5(self.REGIAO1) \
-                                          .with_distrito(self.DISTRITO2) \
-                                          .with_bairro(self.BAIRRO1) \
-                                          .with_nome(self.NOME3) \
-                                          .build()
-        persistir(bd, feira_livre1, feira_livre2, feira_livre3)
-        esperado = {'feiras': [feira_livre1.dict]}
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD1) \
+                                            .with_distrito(self.DISTRITO1) \
+                                            .with_bairro(self.BAIRRO1) \
+                                            .with_nome(self.NOME1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .with_regiao5(self.REGIAO2) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME2) \
+                                            .build()
+        feira_livre3 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO3) \
+                                            .with_regiao5(self.REGIAO1) \
+                                            .with_cod_distrito(self.COD2) \
+                                            .with_distrito(self.DISTRITO2) \
+                                            .with_bairro(self.BAIRRO2) \
+                                            .with_nome(self.NOME3) \
+                                            .build()
+        esperado = {'feiras': [feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO1 +
-                                '&distrito=' + self.DISTRITO1 +
-                                '&bairro=' + self.BAIRRO1 +
+        resposta = self.app.get('/busca?regiao5=' + self.REGIAO2 +
+                                '&distrito=' + self.DISTRITO2 +
+                                '&bairro=' + self.BAIRRO2 +
                                 '&nome=' + self.NOME1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
@@ -423,9 +463,10 @@ class TestApp(unittest.TestCase):
         lista de feiras.
         '''
         # Arrange
-        feira_livre1 = FeiraLivreBuilder().build()
-        feira_livre2 = FeiraLivreBuilder().build()
-        persistir(bd, feira_livre1, feira_livre2)
+        feira_livre1 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                            .build()
+        feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
+                                            .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
         resposta = self.app.get('/busca')
@@ -440,8 +481,8 @@ class TestApp(unittest.TestCase):
               devo receber um JSON contendo a feira livre removida.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_registro(self.REGISTRO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                           .build()
         esperado = {'feira': feira_livre.dict}
         # Act
         resposta = self.app.delete('/feiras?registro=' + self.REGISTRO1)
@@ -461,8 +502,8 @@ class TestApp(unittest.TestCase):
               devo receber um JSON contendo a mensagem de erro.
         '''
         # Arrange
-        feira_livre = FeiraLivreBuilder().with_registro(self.REGISTRO1).build()
-        persistir(bd, feira_livre)
+        feira_livre = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
+                                           .build()
         esperado = {'mensagem': 'Feira livre com registro {0} não existe.'
                                 .format(self.REGISTRO2),
                     'erro': 404}
@@ -475,6 +516,7 @@ class TestApp(unittest.TestCase):
         self.assertEqual(json.loads(resposta.data), esperado)
         self.assertEqual(resposta.status_code, 404)
         self.assertIsNotNone(feira_livre)
+
 
 if __name__ == '__main__':
     unittest.main()
