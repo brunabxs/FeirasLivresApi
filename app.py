@@ -1,9 +1,8 @@
 ''' Módulo responsável por inicializar a aplicação. '''
 
 from src.basedados import bd
-from src.modelos import FeiraLivre
+from src.modelos import FeiraLivre, Endereco, Regiao5, Bairro, Distrito
 from flask import Flask, request, jsonify
-from sqlalchemy import and_
 
 
 app = Flask(__name__)
@@ -46,24 +45,57 @@ def buscar():
     =======
     str -- json contendo o resultado da busca.
     '''
-    regiao = request.args.get('regiao')
+    regiao5 = request.args.get('regiao5')
     distrito = request.args.get('distrito')
-    nome = request.args.get('nome')
     bairro = request.args.get('bairro')
-    filtros = []
-    if regiao is not None:
-        filtros.append(FeiraLivre.regiao == regiao)
-    if distrito is not None:
-        filtros.append(FeiraLivre.distrito == distrito)
-    if nome is not None:
-        filtros.append(FeiraLivre.nome.like('%' + nome + '%'))
-    if bairro is not None:
-        filtros.append(FeiraLivre.bairro == bairro)
-    if len(filtros) > 0:
-        resultado = FeiraLivre.query.filter(and_(*filtros)).all()
-    else:
-        resultado = FeiraLivre.query.all()
+    nome = request.args.get('nome')
+    consulta = criar_consulta_busca(regiao5, distrito, bairro, nome)
+    resultado = consulta.all()
     return jsonify({'feiras': [i.dict for i in resultado]})
 
+
+def criar_consulta_busca(regiao5, distrito, bairro, nome):
+    '''
+    Cria a consulta a ser utilizada na busca de feiras livres.
+
+    Parâmetros
+    ==========
+    regiao5 [str] -- regiao5 da localização da feira livre.
+    distrito [str] -- distrito da localização da feira livre.
+    bairro [str] -- bairro da localização da feira livre.
+    nome [str] -- nome da feira livre.
+
+    Retorno
+    =======
+    Query -- consulta a ser executada para encontrar feiras livres.
+    '''
+    filtros = list()
+    relacoes = list()
+    if nome is not None:
+        filtros.append(FeiraLivre.nome.like('%' + nome + '%'))
+    if regiao5 is not None:
+        relacoes.append(FeiraLivre.endereco)
+        relacoes.append(Endereco.regiao5)
+        filtros.append(Regiao5.nome == regiao5)
+    if distrito is not None:
+        relacoes.append(FeiraLivre.endereco)
+        relacoes.append(Endereco.bairro)
+        relacoes.append(Bairro.distrito)
+        filtros.append(Distrito.nome == distrito)
+    if bairro is not None:
+        relacoes.append(FeiraLivre.endereco)
+        relacoes.append(Endereco.bairro)
+        filtros.append(Bairro.nome == bairro)
+    consulta = FeiraLivre.query
+    # Adiciona na consulta relações únicas
+    relacoes_utilizadas = set()
+    for relacao in relacoes:
+        if relacao not in relacoes_utilizadas:
+            consulta = consulta.join(relacao)
+            relacoes_utilizadas.add(relacao)
+    # Adiciona os filtros à consulta
+    for filtro in filtros:
+        consulta = consulta.filter(*filtros)
+    return consulta
 if __name__ == '__main__':
     app.run()

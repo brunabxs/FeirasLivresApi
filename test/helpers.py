@@ -1,6 +1,6 @@
 ''' Módulo responsável por definir alguns helpers para os testes. '''
 
-from src.modelos import FeiraLivre
+from src.modelos import FeiraLivre, Endereco, Bairro, Regiao5, Distrito
 
 
 def persistir(bd, *objetos):
@@ -27,7 +27,11 @@ class FeiraLivreBuilder:
     '''
     def __init__(self):
         ''' Construtor. '''
-        self.feira_livre = FeiraLivre('qualquer', 'qualquer', 'qualquer', 'qualquer', 'qualquer')
+        self.feira_livre = FeiraLivre()
+        self.feira_livre.endereco = Endereco()
+        self.feira_livre.endereco.regiao5 = Regiao5()
+        self.feira_livre.endereco.bairro = Bairro()
+        self.feira_livre.endereco.bairro.distrito = Distrito()
 
     def with_registro(self, registro):
         '''
@@ -42,36 +46,6 @@ class FeiraLivreBuilder:
         FeiraLivreBuilder -- instância do builder.
         '''
         self.feira_livre.registro = registro
-        return self
-
-    def with_regiao(self, regiao):
-        '''
-        Modifica a região à qual a feira livre pertence.
-
-        Parâmetros
-        ==========
-        regiao [str] -- região à qual pertence a feira livre.
-
-        Retorno
-        =======
-        FeiraLivreBuilder -- instância do builder.
-        '''
-        self.feira_livre.regiao = regiao
-        return self
-
-    def with_distrito(self, distrito):
-        '''
-        Modifica o distrito ao qual a feira livre pertence.
-
-        Parâmetros
-        ==========
-        distrito [str] -- distrito ao qual pertence a feira livre.
-
-        Retorno
-        =======
-        FeiraLivreBuilder -- instância do builder.
-        '''
-        self.feira_livre.distrito = distrito
         return self
 
     def with_nome(self, nome):
@@ -89,6 +63,36 @@ class FeiraLivreBuilder:
         self.feira_livre.nome = nome
         return self
 
+    def with_regiao5(self, regiao5):
+        '''
+        Modifica a região 5 à qual a feira livre pertence.
+
+        Parâmetros
+        ==========
+        regiao5 [str] -- região 5 à qual pertence a feira livre.
+
+        Retorno
+        =======
+        FeiraLivreBuilder -- instância do builder.
+        '''
+        self.feira_livre.endereco.regiao5.nome = regiao5
+        return self
+
+    def with_distrito(self, distrito):
+        '''
+        Modifica o distrito ao qual a feira livre pertence.
+
+        Parâmetros
+        ==========
+        distrito [str] -- distrito ao qual pertence a feira livre.
+
+        Retorno
+        =======
+        FeiraLivreBuilder -- instância do builder.
+        '''
+        self.feira_livre.endereco.bairro.distrito.nome = distrito
+        return self
+
     def with_bairro(self, bairro):
         '''
         Modifica o bairro ao qual a feira livre pertence.
@@ -101,7 +105,7 @@ class FeiraLivreBuilder:
         =======
         FeiraLivreBuilder -- instância do builder.
         '''
-        self.feira_livre.bairro = bairro
+        self.feira_livre.endereco.bairro.nome = bairro
         return self
 
     def build(self):
