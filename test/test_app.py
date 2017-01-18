@@ -152,7 +152,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
+        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -166,7 +166,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
         esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO2)
+        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -186,7 +186,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
+        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -202,7 +202,7 @@ class TestApp(unittest.TestCase):
                                            .build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/busca?distrito=' + self.DISTRITO1)
+        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -218,7 +218,7 @@ class TestApp(unittest.TestCase):
                                            .build()
         esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/busca?distrito=' + self.DISTRITO2)
+        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -240,7 +240,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?distrito=' + self.DISTRITO1)
+        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -254,7 +254,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/busca?nome=' + self.NOME1)
+        resposta = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -268,7 +268,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
         esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/busca?nome=' + self.NOME2)
+        resposta = self.app.get('/feiras?nome=' + self.NOME2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -288,7 +288,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?nome=' + self.NOME1)
+        resposta = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -309,7 +309,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?nome=' + self.NOME1)
+        resposta = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -323,7 +323,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
         esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/busca?bairro=' + self.BAIRRO1)
+        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -337,7 +337,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
         esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/busca?bairro=' + self.BAIRRO2)
+        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -357,7 +357,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?bairro=' + self.BAIRRO1)
+        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -397,7 +397,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO1)
+        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -437,7 +437,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/busca?distrito=' + self.DISTRITO2)
+        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -477,7 +477,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?nome=' + self.NOME1)
+        resposta = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -517,7 +517,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/busca?bairro=' + self.BAIRRO2)
+        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO2)
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -558,7 +558,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca?regiao5=' + self.REGIAO2 +
+        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO2 +
                                 '&distrito=' + self.DISTRITO2 +
                                 '&bairro=' + self.BAIRRO2 +
                                 '&nome=' + self.NOME1)
@@ -579,7 +579,7 @@ class TestApp(unittest.TestCase):
                                             .build()
         esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/busca')
+        resposta = self.app.get('/feiras')
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
 
@@ -595,7 +595,7 @@ class TestApp(unittest.TestCase):
                                            .build()
         esperado = {'feira': feira_livre.dict}
         # Act
-        resposta = self.app.delete('/feiras?registro=' + self.REGISTRO1)
+        resposta = self.app.delete('/feira?registro=' + self.REGISTRO1)
         feira_livre = FeiraLivre.query \
                                 .filter(FeiraLivre.registro == self.REGISTRO1)\
                                 .first()
@@ -618,7 +618,7 @@ class TestApp(unittest.TestCase):
                                 .format(self.REGISTRO2),
                     'erro': 404}
         # Act
-        resposta = self.app.delete('/feiras?registro=' + self.REGISTRO2)
+        resposta = self.app.delete('/feira?registro=' + self.REGISTRO2)
         feira_livre = FeiraLivre.query \
                                 .filter(FeiraLivre.registro == self.REGISTRO1)\
                                 .first()
@@ -658,7 +658,7 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder().from_dict(dado).build()
         esperado = {'feira': feira_livre.dict}
         # Act
-        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        resposta = self.app.post('/feira', data=json.dumps(dado))
         feira_livre = FeiraLivre.query \
                                 .filter(FeiraLivre.registro == self.REGISTRO1)\
                                 .first()
@@ -703,7 +703,7 @@ class TestApp(unittest.TestCase):
         esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter valores diferentes em codigo.',
                     'erro': 400}
         # Act
-        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        resposta = self.app.post('/feira', data=json.dumps(dado))
         # Assert
         mock_rollback.assert_called_once()
         self.assertEqual(json.loads(resposta.data), esperado)
@@ -740,7 +740,7 @@ class TestApp(unittest.TestCase):
         esperado = {'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): distrito, identificador.',
                     'erro': 400}
         # Act
-        resposta = self.app.post('/feiras', data=json.dumps(dado))
+        resposta = self.app.post('/feira', data=json.dumps(dado))
         # Assert
         self.assertEqual(json.loads(resposta.data), esperado)
         self.assertEqual(resposta.status_code, 400)

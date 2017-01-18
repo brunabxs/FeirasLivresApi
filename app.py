@@ -14,7 +14,7 @@ app.config.from_object('config.ProductionConfig')
 bd.init_app(app)
 
 
-@app.route('/feiras', methods=['POST'])
+@app.route('/feira', methods=['POST'])
 def adicionar():
     '''
     Insere uma feira livre dado seu registro.
@@ -81,7 +81,7 @@ def adicionar():
     return resposta
 
 
-@app.route('/feiras', methods=['DELETE'])
+@app.route('/feira', methods=['DELETE'])
 def remover():
     '''
     Remove uma feira livre dado seu registro.
@@ -107,7 +107,7 @@ def remover():
     return resposta
 
 
-@app.route('/busca')
+@app.route('/feiras', methods=['GET'])
 def buscar():
     '''
     Busca feira(s) livre(s) por região e/ou distrito e/ou bairro e/ou nome.
