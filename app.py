@@ -1,6 +1,10 @@
 ''' Módulo responsável por inicializar a aplicação. '''
 
 import re
+import logging
+from logging.handlers import RotatingFileHandler
+from datetime import datetime
+import json as jjson
 from src.basedados import bd
 from src.excecoes import ViolacaoIndiceUnico
 from src.modelos import buscar_ou_criar
@@ -33,6 +37,9 @@ def adicionar():
                                         .format(', '.join(campos_obrigatorios)),
                             'erro': 400})
         resposta.status_code = 400
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'POST /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
         return resposta
     feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
     if feira_livre is not None:
@@ -40,14 +47,23 @@ def adicionar():
                                         'já existe.'.format(json['registro']),
                             'erro': 400})
         resposta.status_code = 400
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'POST /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
         return resposta
     try:
         feira_livre = criar_ou_atualizar(json)
         resposta = jsonify({'feira': feira_livre.dict})
         resposta.status_code = 200
+        app.logger.info('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                        request.remote_addr, 'POST /feira',
+                        resposta.status_code, jjson.loads(resposta.data))
     except ViolacaoIndiceUnico as erro:
         resposta = jsonify({'mensagem': str(erro), 'erro': 400})
         resposta.status_code = 400
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'POST /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
     return resposta
 
 
@@ -69,6 +85,9 @@ def alterar():
                                         .format(', '.join(campos_obrigatorios)),
                             'erro': 400})
         resposta.status_code = 400
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'PUT /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
         return resposta
     feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
     if feira_livre is None:
@@ -76,14 +95,23 @@ def alterar():
                                         'não existe.'.format(json['registro']),
                             'erro': 404})
         resposta.status_code = 404
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'PUT /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
         return resposta
     try:
         feira_livre = criar_ou_atualizar(json, feira_livre)
         resposta = jsonify({'feira': feira_livre.dict})
         resposta.status_code = 200
+        app.logger.info('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                        request.remote_addr, 'PUT /feira',
+                        resposta.status_code, jjson.loads(resposta.data))
     except ViolacaoIndiceUnico as erro:
         resposta = jsonify({'mensagem': str(erro), 'erro': 400})
         resposta.status_code = 400
+        app.logger.error('%s - %s -\t%s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'PUT /feira',
+                         resposta.status_code, jjson.loads(resposta.data))
     return resposta
 
 
@@ -105,11 +133,17 @@ def remover():
                                         'não existe.'.format(registro),
                             'erro': 404})
         resposta.status_code = 404
+        app.logger.error('%s - %s -\t%s - %s\t- %s\n%s', datetime.now(),
+                         request.remote_addr, 'DELETE /feira', request.args,
+                         resposta.status_code, jjson.loads(resposta.data))
     else:
         bd.session.delete(feira_livre)
         bd.session.commit()
         resposta = jsonify({'feira': feira_livre.dict})
         resposta.status_code = 200
+        app.logger.info('%s - %s -\t%s - %s\t- %s\n%s', datetime.now(),
+                        request.remote_addr, 'DELETE /feira', request.args,
+                        resposta.status_code, jjson.loads(resposta.data))
     return resposta
 
 
@@ -128,7 +162,11 @@ def buscar():
     nome = request.args.get('nome')
     consulta = criar_consulta_busca(regiao5, distrito, bairro, nome)
     resultado = consulta.all()
-    return jsonify({'feiras': [i.dict for i in resultado]})
+    resposta = jsonify({'feiras': [i.dict for i in resultado]})
+    app.logger.info('%s - %s -\t%s - %s\t- %s\n%s', datetime.now(),
+                    request.remote_addr, 'GET /feira', request.args,
+                    resposta.status_code, jjson.loads(resposta.data))
+    return resposta
 
 
 def criar_ou_atualizar(json, feira_livre=None):
@@ -286,4 +324,7 @@ def criar_consulta_busca(regiao5, distrito, bairro, nome):
 
 
 if __name__ == '__main__':
+    handler = RotatingFileHandler('log.txt', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
     app.run()

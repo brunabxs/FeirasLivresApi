@@ -2,12 +2,16 @@
 
 import unittest
 import unittest.mock as mock
+import logging
 from app import app
 from src.basedados import bd
 from src.excecoes import ViolacaoIndiceUnico
 from src.modelos import converter_dict, buscar_ou_criar
 from src.modelos import Subprefeitura, Distrito, Regiao5, Regiao8
 from src.modelos import Bairro, Logradouro, Endereco, FeiraLivre
+
+logger = logging.getLogger('app')
+logger.setLevel(logging.CRITICAL)
 
 
 class TestConverterDict(unittest.TestCase):

@@ -6,11 +6,15 @@ funcionais da aplicação.
 import unittest
 import unittest.mock as mock
 import json
+import logging
 from copy import copy
 from app import app
 from app import verificar_campos_obrigatorios, identificar_entidade_colunas
 from src.basedados import bd
 from test.helpers import *
+
+logger = logging.getLogger('app')
+logger.setLevel(logging.CRITICAL)
 
 
 class TestVerificarCamposObrigatorios(unittest.TestCase):
