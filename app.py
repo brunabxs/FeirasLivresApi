@@ -2,6 +2,7 @@
 
 import re
 from src.basedados import bd
+from src.excecoes import ViolacaoIndiceUnico
 from src.modelos import buscar_ou_criar
 from src.modelos import FeiraLivre, Endereco, Logradouro, Bairro
 from src.modelos import Regiao8, Regiao5, Distrito, Subprefeitura
@@ -17,7 +18,7 @@ bd.init_app(app)
 @app.route('/feira', methods=['POST'])
 def adicionar():
     '''
-    Insere uma feira livre dado seu registro.
+    Insere uma feira livre.
 
     Retorno
     =======
@@ -32,52 +33,55 @@ def adicionar():
                             'erro': 400})
         resposta.status_code = 400
         return resposta
+    feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
+    if feira_livre is not None:
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} já existe.'
+                                        .format(json['registro']),
+                            'erro': 400})
+        resposta.status_code = 400
+        return resposta
     try:
-        subprefeitura = buscar_ou_criar(bd.session, Subprefeitura,
-                                        codigo=json['cod_subpref'],
-                                        nome=json['subprefeitura'])
-        distrito = buscar_ou_criar(bd.session, Distrito,
-                                   codigo=json['cod_distrito'],
-                                   nome=json['distrito'],
-                                   subprefeitura=subprefeitura)
-        regiao5 = buscar_ou_criar(bd.session, Regiao5,
-                                  nome=json['regiao5'])
-        regiao8 = buscar_ou_criar(bd.session, Regiao8,
-                                  nome=json['regiao8'])
-        bairro = buscar_ou_criar(bd.session, Bairro,
-                                 nome=json['bairro'],
-                                 distrito=distrito)
-        logradouro = buscar_ou_criar(bd.session, Logradouro,
-                                     nome=json['logradouro'])
-        endereco = buscar_ou_criar(bd.session, Endereco,
-                                   logradouro=logradouro,
-                                   numero=json['numero'],
-                                   referencia=json['referencia'],
-                                   bairro=bairro,
-                                   regiao5=regiao5,
-                                   regiao8=regiao8,
-                                   latitude=json['latitude'],
-                                   longitude=json['longitude'],
-                                   setor_censitario=json['setor_censitario'],
-                                   area_ponderacao=json['area_ponderacao'])
-        feira_livre = buscar_ou_criar(bd.session, FeiraLivre,
-                                      identificador=json['identificador'],
-                                      nome=json['nome'],
-                                      registro=json['registro'],
-                                      endereco=endereco)
-        bd.session.commit()
+        feira_livre = criar_ou_atualizar(json)
         resposta = jsonify({'feira': feira_livre.dict})
         resposta.status_code = 200
-    except IntegrityError as erro:
-        bd.session.rollback()
-        if 'UNIQUE constraint failed' in erro.args[0]:
-            entidade, colunas = identificar_entidade_colunas(erro.args[0])
-            resposta = jsonify({'mensagem': 'Um(a) novo(a) {0} deve conter valores diferentes em {1}.'
-                                            .format(entidade, ', '.join(colunas)),
-                                'erro': 400})
-            resposta.status_code = 400
-        else:
-            raise erro
+    except ViolacaoIndiceUnico as erro:
+        resposta = jsonify({'mensagem': str(erro), 'erro': 400})
+        resposta.status_code = 400
+    return resposta
+
+
+@app.route('/feira', methods=['PUT'])
+def alterar():
+    '''
+    Altera as informações de uma feira livre dado seu registro.
+
+    Retorno
+    =======
+    str -- json contendo a feira atualizada ou mensagem de erro.
+    '''
+    json = request.get_json(force=True)
+    resposta = None
+    campos_obrigatorios = verificar_campos_obrigatorios(json)
+    if len(campos_obrigatorios) > 0:
+        resposta = jsonify({'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): {0}.'
+                                        .format(', '.join(campos_obrigatorios)),
+                            'erro': 400})
+        resposta.status_code = 400
+        return resposta
+    feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
+    if feira_livre is None:
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} não existe.'
+                                        .format(json['registro']),
+                            'erro': 404})
+        resposta.status_code = 404
+        return resposta
+    try:
+        feira_livre = criar_ou_atualizar(json, feira_livre)
+        resposta = jsonify({'feira': feira_livre.dict})
+        resposta.status_code = 200
+    except ViolacaoIndiceUnico as erro:
+        resposta = jsonify({'mensagem': str(erro), 'erro': 400})
+        resposta.status_code = 400
     return resposta
 
 
@@ -123,6 +127,72 @@ def buscar():
     consulta = criar_consulta_busca(regiao5, distrito, bairro, nome)
     resultado = consulta.all()
     return jsonify({'feiras': [i.dict for i in resultado]})
+
+
+def criar_ou_atualizar(json, feira_livre=None):
+    '''
+    Cria uma feira livre a partir do json ou atualiza utilizando esses dados.
+
+    Parâmetros
+    ==========
+    json [Dict] -- json contendo as informações da feira livre.
+
+    Retorno
+    =======
+    FeiraLivre -- feira livre criada/alterada.
+
+    Exceções/Erros
+    ==============
+    ViolacaoIndiceUnico
+    '''
+    try:
+        subprefeitura = buscar_ou_criar(bd.session, Subprefeitura,
+                                        codigo=json['cod_subpref'],
+                                        nome=json['subprefeitura'])
+        distrito = buscar_ou_criar(bd.session, Distrito,
+                                   codigo=json['cod_distrito'],
+                                   nome=json['distrito'],
+                                   subprefeitura=subprefeitura)
+        regiao5 = buscar_ou_criar(bd.session, Regiao5,
+                                  nome=json['regiao5'])
+        regiao8 = buscar_ou_criar(bd.session, Regiao8,
+                                  nome=json['regiao8'])
+        bairro = buscar_ou_criar(bd.session, Bairro,
+                                 nome=json['bairro'],
+                                 distrito=distrito)
+        logradouro = buscar_ou_criar(bd.session, Logradouro,
+                                     nome=json['logradouro'])
+        endereco = buscar_ou_criar(bd.session, Endereco,
+                                   logradouro=logradouro,
+                                   numero=json['numero'],
+                                   referencia=json['referencia'],
+                                   bairro=bairro,
+                                   regiao5=regiao5,
+                                   regiao8=regiao8,
+                                   latitude=json['latitude'],
+                                   longitude=json['longitude'],
+                                   setor_censitario=json['setor_censitario'],
+                                   area_ponderacao=json['area_ponderacao'])
+        if feira_livre is None:
+            feira_livre = buscar_ou_criar(bd.session, FeiraLivre,
+                                          identificador=json['identificador'],
+                                          nome=json['nome'],
+                                          registro=json['registro'],
+                                          endereco=endereco)
+        else:
+            feira_livre.identificador = json['identificador']
+            feira_livre.nome = json['nome']
+            feira_livre.endereco = endereco
+        bd.session.commit()
+        return feira_livre
+    except IntegrityError as erro:
+        bd.session.rollback()
+        if 'UNIQUE constraint failed' in erro.args[0]:
+            entidade, colunas = identificar_entidade_colunas(erro.args[0])
+            raise ViolacaoIndiceUnico('Um(a) novo(a) {0} deve conter valores diferentes em {1}.'
+                                      .format(entidade, ', '.join(colunas)))
+        else:
+            raise erro
 
 
 def verificar_campos_obrigatorios(json):

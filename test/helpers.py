@@ -363,11 +363,6 @@ class FeiraLivreBuilder:
                            .first()
         if endereco is not None:
             self.feira_livre.endereco = endereco
-        feira_livre = FeiraLivre.query \
-                           .filter(FeiraLivre.registro == self.feira_livre.registro) \
-                           .first()
-        if feira_livre is not None:
-            self.feira_livre = feira_livre
 
         if self.bd is not None:
             self.bd.session.add(self.feira_livre)
