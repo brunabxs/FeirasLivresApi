@@ -1,7 +1,4 @@
-'''
-Módulo responsável por manter/executar os testes unitários dos \
-modelos.
-'''
+''' Módulo responsável por manter/executar os testes dos modelos. '''
 
 import unittest
 import unittest.mock as mock
@@ -15,7 +12,7 @@ from src.modelos import Bairro, Logradouro, Endereco, FeiraLivre
 class TestConverterDict(unittest.TestCase):
     ''' Mantém os testes unitários relacionados à função converter_dict. '''
 
-    def test_converter_dict1(self):
+    def test_none(self):
         '''
         Dado um elemento com valor None
         Quando é feita sua conversão para dict
@@ -23,28 +20,27 @@ class TestConverterDict(unittest.TestCase):
         '''
         # Arrange
         elemento = None
-        esperado = None
+        valor_esperado = None
         # Act
-        resposta = converter_dict(elemento)
+        valor_atual = converter_dict(elemento)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
-    def test_converter_dict2(self):
+    def test_propriedade_dict(self):
         '''
         Dado um elemento tem propriedade dict
         Quando é feita sua conversão para dict
         Então deve retornar a sua representação em dict.
         '''
         # Arrange
-        elemento = FeiraLivre()
-        esperado = {}
-        with mock.patch('src.modelos.FeiraLivre.dict',
-                        new_callable=mock.PropertyMock) as mock_dict:
-            mock_dict.return_value = {}
-            # Act
-            resposta = converter_dict(elemento)
+        mock_elemento = mock.MagicMock()
+        mock_propriedade = mock.PropertyMock(return_value='ppp')
+        type(mock_elemento).dict = mock_propriedade
+        valor_esperado = 'ppp'
+        # Act
+        valor_atual = converter_dict(mock_elemento)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestBuscarOuCriar(unittest.TestCase):
@@ -71,12 +67,11 @@ class TestBuscarOuCriar(unittest.TestCase):
         '''
         # Arrange
         # Act
-        resposta = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
+        valor_atual = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
         # Assert
-        self.assertEqual(resposta.codigo, '123')
-        self.assertEqual(resposta.id, 1)
-        total = Subprefeitura.query.count()
-        self.assertEqual(total, 1)
+        self.assertEqual(valor_atual.codigo, '123')
+        self.assertEqual(valor_atual.id, 1)
+        self.assertEqual(Subprefeitura.query.count(), 1)
 
     def test_buscar(self):
         '''
@@ -87,18 +82,17 @@ class TestBuscarOuCriar(unittest.TestCase):
               deve retornar o elemento existente.
         '''
         # Arrange
-        esperado = Subprefeitura(codigo='123')
-        bd.session.add(esperado)
+        valor_esperado = Subprefeitura(codigo='123')
+        bd.session.add(valor_esperado)
         bd.session.commit()
         bd.session.flush()
         # Act
-        resposta = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
+        valor_atual = buscar_ou_criar(bd.session, Subprefeitura, codigo='123')
         # Assert
-        self.assertEqual(resposta, esperado)
-        total = Subprefeitura.query.count()
-        self.assertEqual(total, 1)
+        self.assertEqual(valor_atual, valor_esperado)
+        self.assertEqual(Subprefeitura.query.count(), 1)
 
-    def test_commit1(self):
+    def test_commit_ativado(self):
         '''
         Dado um elemento a ser inserido
         Quando a opção de commit está ligada (commit=True)
@@ -106,28 +100,28 @@ class TestBuscarOuCriar(unittest.TestCase):
         sessão após commit).
         '''
         # Arrange
-        esperado = 1
+        valor_esperado = 1
         # Act
         buscar_ou_criar(bd.session, Subprefeitura, True, codigo='123')
         bd.session.rollback()
         # Assert
-        resposta = Subprefeitura.query.count()
-        self.assertEqual(resposta, esperado)
+        valor_atual = Subprefeitura.query.count()
+        self.assertEqual(valor_atual, valor_esperado)
 
-    def test_commit2(self):
+    def test_commit_desativado(self):
         '''
         Dado um elemento a ser inserido
         Quando a opção de commit está desligada (commit=False)
         Então a inserção é desfeita num rollback.
         '''
         # Arrange
-        esperado = 0
+        valor_esperado = 0
         # Act
         buscar_ou_criar(bd.session, Subprefeitura, False, codigo='123')
         bd.session.rollback()
         # Assert
-        resposta = Subprefeitura.query.count()
-        self.assertEqual(resposta, esperado)
+        valor_atual = Subprefeitura.query.count()
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestSubprefeitura(unittest.TestCase):
@@ -143,12 +137,12 @@ class TestSubprefeitura(unittest.TestCase):
         '''
         # Arrange
         subprefeitura = Subprefeitura(codigo=self.CODIGO, nome=self.NOME)
-        esperado = {'codigo': subprefeitura.codigo,
-                    'nome': subprefeitura.nome}
+        valor_esperado = {'codigo': subprefeitura.codigo,
+                          'nome': subprefeitura.nome}
         # Act
-        resposta = subprefeitura.dict
+        valor_atual = subprefeitura.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestDistrito(unittest.TestCase):
@@ -165,13 +159,13 @@ class TestDistrito(unittest.TestCase):
         '''
         # Arrange
         distrito = Distrito(codigo=self.CODIGO, nome=self.NOME)
-        esperado = {'codigo': distrito.codigo,
-                    'nome': distrito.nome,
-                    'subprefeitura': 'DICT'}
+        valor_esperado = {'codigo': distrito.codigo,
+                          'nome': distrito.nome,
+                          'subprefeitura': 'DICT'}
         # Act
-        resposta = distrito.dict
+        valor_atual = distrito.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
         mock_converter_dict.assert_called_once()
 
 
@@ -187,11 +181,11 @@ class TestRegiao5(unittest.TestCase):
         '''
         # Arrange
         regiao = Regiao5(nome=self.NOME)
-        esperado = {'nome': regiao.nome}
+        valor_esperado = {'nome': regiao.nome}
         # Act
-        resposta = regiao.dict
+        valor_atual = regiao.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestRegiao8(unittest.TestCase):
@@ -206,11 +200,11 @@ class TestRegiao8(unittest.TestCase):
         '''
         # Arrange
         regiao = Regiao8(nome=self.NOME)
-        esperado = {'nome': regiao.nome}
+        valor_esperado = {'nome': regiao.nome}
         # Act
-        resposta = regiao.dict
+        valor_atual = regiao.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestBairro(unittest.TestCase):
@@ -226,12 +220,12 @@ class TestBairro(unittest.TestCase):
         '''
         # Arrange
         bairro = Bairro(nome=self.NOME)
-        esperado = {'nome': bairro.nome,
-                    'distrito': 'DICT'}
+        valor_esperado = {'nome': bairro.nome,
+                          'distrito': 'DICT'}
         # Act
-        resposta = bairro.dict
+        valor_atual = bairro.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
         mock_converter_dict.assert_called_once()
 
 
@@ -247,11 +241,11 @@ class TestLogradouro(unittest.TestCase):
         '''
         # Arrange
         logradouro = Logradouro(nome=self.NOME)
-        esperado = {'nome': logradouro.nome}
+        valor_esperado = {'nome': logradouro.nome}
         # Act
-        resposta = logradouro.dict
+        valor_atual = logradouro.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestEndereco(unittest.TestCase):
@@ -277,20 +271,20 @@ class TestEndereco(unittest.TestCase):
                             longitude=self.LONG,
                             setor_censitario=self.SETOR_CENS,
                             area_ponderacao=self.AREA_POND)
-        esperado = {'numero': endereco.numero,
-                    'referencia': endereco.referencia,
-                    'latitude': endereco.latitude,
-                    'longitude': endereco.longitude,
-                    'setor_censitario': endereco.setor_censitario,
-                    'area_ponderacao': endereco.area_ponderacao,
-                    'logradouro': 'DICT',
-                    'bairro': 'DICT',
-                    'regiao5': 'DICT',
-                    'regiao8': 'DICT'}
+        valor_esperado = {'numero': endereco.numero,
+                          'referencia': endereco.referencia,
+                          'latitude': endereco.latitude,
+                          'longitude': endereco.longitude,
+                          'setor_censitario': endereco.setor_censitario,
+                          'area_ponderacao': endereco.area_ponderacao,
+                          'logradouro': 'DICT',
+                          'bairro': 'DICT',
+                          'regiao5': 'DICT',
+                          'regiao8': 'DICT'}
         # Act
-        resposta = endereco.dict
+        valor_atual = endereco.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
         mock_converter_dict.assert_called()
         self.assertEqual(mock_converter_dict.call_count, 4)
 
@@ -313,12 +307,12 @@ class TestFeiraLivre(unittest.TestCase):
         feira_livre = FeiraLivre(identificador=self.IDENTIFICADOR,
                                  registro=self.REGISTRO,
                                  nome=self.NOME)
-        esperado = {'nome': feira_livre.nome,
-                    'registro': feira_livre.registro,
-                    'identificador': feira_livre.identificador,
-                    'endereco': 'DICT'}
+        valor_esperado = {'nome': feira_livre.nome,
+                          'registro': feira_livre.registro,
+                          'identificador': feira_livre.identificador,
+                          'endereco': 'DICT'}
         # Act
-        resposta = feira_livre.dict
+        valor_atual = feira_livre.dict
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
         mock_converter_dict.assert_called_once()

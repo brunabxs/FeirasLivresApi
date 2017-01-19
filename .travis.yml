@@ -8,4 +8,4 @@ script:
   - python -m unittest discover
 after_success:
   - coverage run --branch --omit=test/* -m unittest discover
-  - coverage html -d reports/coverage
+  - coverage html -d relatorios/coverage

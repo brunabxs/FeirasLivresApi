@@ -35,12 +35,12 @@ def buscar_ou_criar(sessao, modelo, commit=False, **kwargs):
     sessao [Session] -- sessão.
     modelo [Model] -- modelo.
     commit [bool] -- informa se faz ou não commit na sessão.
-    kwargs [] -- informações pelas qual a entidade será \
+    kwargs -- informações pelas qual a entidade será \
     procurada ou criada.
 
     Retorno
     =======
-    [] -- instância do modelo que foi encontrada ou criada.
+    instância do modelo que foi encontrada ou criada.
     '''
     consulta = sessao.query(modelo).filter_by(**kwargs)
     instancia = consulta.first()
@@ -100,7 +100,7 @@ class Distrito(bd.Model):
     codigo = Column(String(5), unique=True)
     nome = Column(String(80))
     subprefeitura_id = Column(Integer, ForeignKey('Subprefeitura.id'))
-    subprefeitura = relationship('Subprefeitura')
+    subprefeitura = relationship('Subprefeitura', lazy='subquery')
 
     @property
     def dict(self):
@@ -179,9 +179,10 @@ class Bairro(bd.Model):
     '''
     __tablename__ = 'Bairro'
     id = Column(Integer, primary_key=True)
-    nome = Column(String(80), unique=True)
+    nome = Column(String(80))
     distrito_id = Column(Integer, ForeignKey('Distrito.id'))
-    distrito = relationship('Distrito')
+    distrito = relationship('Distrito', lazy='subquery')
+    __table_args__ = (UniqueConstraint('nome', 'distrito_id', name='bairro_UK'),)
 
     @property
     def dict(self):
@@ -238,30 +239,34 @@ class Endereco(bd.Model):
     regiao5 [regiao5] -- regiao5 do endereço.
     regiao8_id [int] -- id da regiao8 do endereço.
     regiao8 [regiao8] -- regiao8 do endereço.
-    latitude [float] -- latitude da localização do endereço no território do Município.
-    longitude [float] -- longitude da localização do endereço no território do Município.
+    latitude [float] -- latitude da localização do endereço no território \
+    do Município.
+    longitude [float] -- longitude da localização do endereço no território \
+    do Município.
     setor_censitario [str] -- setor censitário do endereço.
-    area_ponderacao [str] -- área de ponderação (agrupamento de setores censitários) do endereço.
+    area_ponderacao [str] -- área de ponderação (agrupamento de setores \
+    censitários) do endereço.
     '''
     __tablename__ = 'Endereco'
     id = Column(Integer, primary_key=True)
     logradouro_id = Column(Integer, ForeignKey('Logradouro.id'))
-    logradouro = relationship('Logradouro')
+    logradouro = relationship('Logradouro', lazy='subquery')
     numero = Column(String(10))
     referencia = Column(String(255))
     bairro_id = Column(Integer, ForeignKey('Bairro.id'))
-    bairro = relationship('Bairro')
+    bairro = relationship('Bairro', lazy='subquery')
     regiao5_id = Column(Integer, ForeignKey('Regiao5.id'))
-    regiao5 = relationship('Regiao5')
+    regiao5 = relationship('Regiao5', lazy='subquery')
     regiao8_id = Column(Integer, ForeignKey('Regiao8.id'))
-    regiao8 = relationship('Regiao8')
+    regiao8 = relationship('Regiao8', lazy='subquery')
     latitude = Column(Float)
     longitude = Column(Float)
     setor_censitario = Column(String(50))
     area_ponderacao = Column(String(50))
     __table_args__ = (UniqueConstraint('logradouro_id', 'bairro_id',
                                        'regiao5_id', 'regiao8_id',
-                                       'numero', name='endereco_UK'),)
+                                       'numero', 'latitude', 'longitude',
+                                       name='endereco_UK'),)
 
     @property
     def dict(self):
@@ -291,7 +296,8 @@ class FeiraLivre(bd.Model):
     Atributos
     ==========
     id [int] -- id da feira livre.
-    identificador [int] -- número de identificação do estabelecimento georreferenciado.
+    identificador [int] -- número de identificação do estabelecimento \
+    georreferenciado.
     nome [str] -- nome da feira livre.
     registro [str] -- registro da feira livre.
     endereco_id [int] -- id do endereço onde se localiza a feira livre.
@@ -303,7 +309,7 @@ class FeiraLivre(bd.Model):
     nome = Column(String(80))
     registro = Column(String(50), unique=True)
     endereco_id = Column(Integer, ForeignKey('Endereco.id'))
-    endereco = relationship('Endereco')
+    endereco = relationship('Endereco', lazy='subquery')
 
     @property
     def dict(self):

@@ -28,15 +28,16 @@ def adicionar():
     resposta = None
     campos_obrigatorios = verificar_campos_obrigatorios(json)
     if len(campos_obrigatorios) > 0:
-        resposta = jsonify({'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): {0}.'
+        resposta = jsonify({'mensagem': 'Campo(s) obrigatório(s) não '
+                                        'encontrado(s): {0}.'
                                         .format(', '.join(campos_obrigatorios)),
                             'erro': 400})
         resposta.status_code = 400
         return resposta
     feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
     if feira_livre is not None:
-        resposta = jsonify({'mensagem': 'Feira livre com registro {0} já existe.'
-                                        .format(json['registro']),
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} '
+                                        'já existe.'.format(json['registro']),
                             'erro': 400})
         resposta.status_code = 400
         return resposta
@@ -63,15 +64,16 @@ def alterar():
     resposta = None
     campos_obrigatorios = verificar_campos_obrigatorios(json)
     if len(campos_obrigatorios) > 0:
-        resposta = jsonify({'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): {0}.'
+        resposta = jsonify({'mensagem': 'Campo(s) obrigatório(s) não '
+                                        'encontrado(s): {0}.'
                                         .format(', '.join(campos_obrigatorios)),
                             'erro': 400})
         resposta.status_code = 400
         return resposta
     feira_livre = FeiraLivre.query.filter_by(registro=json['registro']).first()
     if feira_livre is None:
-        resposta = jsonify({'mensagem': 'Feira livre com registro {0} não existe.'
-                                        .format(json['registro']),
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} '
+                                        'não existe.'.format(json['registro']),
                             'erro': 404})
         resposta.status_code = 404
         return resposta
@@ -99,8 +101,8 @@ def remover():
     feira_livre = FeiraLivre.query.filter(FeiraLivre.registro == registro) \
                                   .first()
     if feira_livre is None:
-        resposta = jsonify({'mensagem': 'Feira livre com registro {0} não existe.'
-                                        .format(registro),
+        resposta = jsonify({'mensagem': 'Feira livre com registro {0} '
+                                        'não existe.'.format(registro),
                             'erro': 404})
         resposta.status_code = 404
     else:

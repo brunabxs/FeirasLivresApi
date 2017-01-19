@@ -6,7 +6,9 @@ funcionais da aplicação.
 import unittest
 import unittest.mock as mock
 import json
-from app import app, verificar_campos_obrigatorios, identificar_entidade_colunas
+from copy import copy
+from app import app
+from app import verificar_campos_obrigatorios, identificar_entidade_colunas
 from src.basedados import bd
 from test.helpers import *
 
@@ -14,6 +16,25 @@ from test.helpers import *
 class TestVerificarCamposObrigatorios(unittest.TestCase):
     ''' Mantém os testes unitários relacionados à função \
     verificar_campos_obrigatorios. '''
+    JSON = {
+        'identificador': 1,
+        'latitude': -123,
+        'longitude': 456,
+        'setor_censitario': 'setor',
+        'area_ponderacao': 'area',
+        'cod_distrito': 'codd',
+        'distrito': 'dist',
+        'cod_subpref': 'cods',
+        'subprefeitura': 'subpref',
+        'regiao5': 'reg1',
+        'regiao8': 'reg2',
+        'nome': 'nome',
+        'registro': 'reg',
+        'logradouro': 'logradouro',
+        'numero': 'num',
+        'bairro': 'bairro',
+        'referencia': 'referencia'
+    }
 
     def test_todos_presentes(self):
         '''
@@ -23,30 +44,12 @@ class TestVerificarCamposObrigatorios(unittest.TestCase):
         Então devo receber uma lista vazia.
         '''
         # Arrange
-        json = {
-            'identificador': 1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': 'dist',
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': 'reg',
-            'regiao8': 'reg2',
-            'nome': 'nome',
-            'registro': 'registro',
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': 'bairro',
-            'referencia': 'referencia'
-        }
-        esperado = []
+        json = copy(self.JSON)
+        valor_esperado = []
         # Act
-        resposta = verificar_campos_obrigatorios(json)
+        valor_atual = verificar_campos_obrigatorios(json)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
     def test_ao_menos_um_faltando(self):
         '''
@@ -57,30 +60,13 @@ class TestVerificarCamposObrigatorios(unittest.TestCase):
         faltando.
         '''
         # Arrange
-        json = {
-            # 'identificador': 1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': 'dist',
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': 'reg',
-            'regiao8': 'reg2',
-            'nome': 'nome',
-            'registro': 'registro',
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': 'bairro',
-            'referencia': 'referencia'
-        }
-        esperado = ['identificador']
+        json = copy(self.JSON)
+        json.pop('identificador', None)
+        valor_esperado = ['identificador']
         # Act
-        resposta = verificar_campos_obrigatorios(json)
+        valor_atual = verificar_campos_obrigatorios(json)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
 class TestIdentificarEntidadeColunas(unittest.TestCase):
@@ -96,12 +82,13 @@ class TestIdentificarEntidadeColunas(unittest.TestCase):
         e o nome da coluna, respectivamente.
         '''
         # Arrange
-        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: Distrito.codigo'
-        esperado = ('Distrito', ('codigo',))
+        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: ' \
+                   'Distrito.codigo'
+        valor_esperado = ('Distrito', ('codigo',))
         # Act
-        resposta = identificar_entidade_colunas(mensagem)
+        valor_atual = identificar_entidade_colunas(mensagem)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
     def test_varias_colunas(self):
         '''
@@ -112,18 +99,18 @@ class TestIdentificarEntidadeColunas(unittest.TestCase):
         e os nomes das colunas, respectivamente.
         '''
         # Arrange
-        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: Distrito.codigo, Distrito.nome'
-        esperado = ('Distrito', ('codigo', 'nome'))
+        mensagem = '(sqlite3.IntegrityError) UNIQUE constraint failed: ' \
+                   'Distrito.codigo, Distrito.nome'
+        valor_esperado = ('Distrito', ('codigo', 'nome'))
         # Act
-        resposta = identificar_entidade_colunas(mensagem)
+        valor_atual = identificar_entidade_colunas(mensagem)
         # Assert
-        self.assertEqual(resposta, esperado)
+        self.assertEqual(valor_atual, valor_esperado)
 
 
-class TestApp(unittest.TestCase):
-    ''' Mantém os testes relacionados à aplicação. '''
+class TestBuscar(unittest.TestCase):
+    ''' Mantém os testes relacionados à busca de uma feira. '''
     COD1, COD2 = 'cod1', 'cod2'
-    IDENTIFICADOR1, IDENTIFICADOR2 = 1, 2
     REGISTRO1, REGISTRO2, REGISTRO3 = '123', '456', '789'
     REGIAO1, REGIAO2 = 'regiao1', 'regiao2'
     DISTRITO1, DISTRITO2 = 'distrito1', 'distrito2'
@@ -142,7 +129,7 @@ class TestApp(unittest.TestCase):
         bd.drop_all()
         self.contexto.pop()
 
-    def test_buscar1(self):
+    def test_regiao(self):
         '''
         Dada uma feira livre na região 'regiao1'
         Quando o busco por regiao5='regiao1'
@@ -150,13 +137,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
-        esperado = {'feiras': [feira_livre.dict]}
+        valor_esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
+        valor_atual = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar2(self):
+    def test_regiao_diferente(self):
         '''
         Dada uma feira livre na região 'regiao1'
         Quando o busco por regiao5='regiao2'
@@ -164,13 +151,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_regiao5(self.REGIAO1).build()
-        esperado = {'feiras': []}
+        valor_esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO2)
+        valor_atual = self.app.get('/feiras?regiao5=' + self.REGIAO2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar3(self):
+    def test_regiao_varias_feiras(self):
         '''
         Dadas duas feiras livres na região 'regiao1'
         Quando o busco por regiao5='regiao1'
@@ -184,13 +171,13 @@ class TestApp(unittest.TestCase):
         feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
                                             .with_regiao5(self.REGIAO1) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
+        valor_atual = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar4(self):
+    def test_distrito(self):
         '''
         Dada uma feira livre no distrito 'distrito1'
         Quando o busco por distrito='distrito1'
@@ -200,13 +187,13 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_cod_distrito(self.COD1) \
                                            .with_distrito(self.DISTRITO1) \
                                            .build()
-        esperado = {'feiras': [feira_livre.dict]}
+        valor_esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO1)
+        valor_atual = self.app.get('/feiras?distrito=' + self.DISTRITO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar5(self):
+    def test_distrito_diferente(self):
         '''
         Dada uma feira livre no distrito 'distrito1'
         Quando o busco por distrito='distrito2'
@@ -216,13 +203,13 @@ class TestApp(unittest.TestCase):
         feira_livre = FeiraLivreBuilder(bd).with_cod_distrito(self.COD1) \
                                            .with_distrito(self.DISTRITO1) \
                                            .build()
-        esperado = {'feiras': []}
+        valor_esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO2)
+        valor_atual = self.app.get('/feiras?distrito=' + self.DISTRITO2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar6(self):
+    def test_distrito_varias_feiras(self):
         '''
         Dadas duas feiras livres no distrito 'distrito1'
         Quando o busco por distrito='distrito1'
@@ -238,13 +225,13 @@ class TestApp(unittest.TestCase):
                                             .with_cod_distrito(self.COD1) \
                                             .with_distrito(self.DISTRITO1) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO1)
+        valor_atual = self.app.get('/feiras?distrito=' + self.DISTRITO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar7(self):
+    def test_nome(self):
         '''
         Dada uma feira livre com nome 'nome1'
         Quando o busco por nome='nome1'
@@ -252,13 +239,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
-        esperado = {'feiras': [feira_livre.dict]}
+        valor_esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/feiras?nome=' + self.NOME1)
+        valor_atual = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar8(self):
+    def test_nome_diferente(self):
         '''
         Dada uma feira livre com nome 'nome1'
         Quando o busco por nome='nome2'
@@ -266,13 +253,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_nome(self.NOME1).build()
-        esperado = {'feiras': []}
+        valor_esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/feiras?nome=' + self.NOME2)
+        valor_atual = self.app.get('/feiras?nome=' + self.NOME2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar9(self):
+    def test_nome_varias_feiras(self):
         '''
         Dadas duas feiras livres com nome 'nome1'
         Quando o busco por nome='nome1'
@@ -286,13 +273,13 @@ class TestApp(unittest.TestCase):
         feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
                                             .with_nome(self.NOME1) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?nome=' + self.NOME1)
+        valor_atual = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar10(self):
+    def test_nome_semelhante(self):
         '''
         Dadas uma feira livre com nome 'nome1' e
               uma feira livre com nome 'nome1a'
@@ -307,13 +294,13 @@ class TestApp(unittest.TestCase):
         feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
                                             .with_nome(self.NOME2) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?nome=' + self.NOME1)
+        valor_atual = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar11(self):
+    def test_bairro(self):
         '''
         Dada uma feira livre no bairro 'bairro1'
         Quando o busco por bairro='bairro1'
@@ -321,13 +308,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
-        esperado = {'feiras': [feira_livre.dict]}
+        valor_esperado = {'feiras': [feira_livre.dict]}
         # Act
-        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO1)
+        valor_atual = self.app.get('/feiras?bairro=' + self.BAIRRO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar12(self):
+    def test_bairro_diferente(self):
         '''
         Dada uma feira livre no bairro 'bairro1'
         Quando o busco por bairro='bairro2'
@@ -335,13 +322,13 @@ class TestApp(unittest.TestCase):
         '''
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_bairro(self.BAIRRO1).build()
-        esperado = {'feiras': []}
+        valor_esperado = {'feiras': []}
         # Act
-        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO2)
+        valor_atual = self.app.get('/feiras?bairro=' + self.BAIRRO2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar13(self):
+    def test_bairro_varias_feiras(self):
         '''
         Dadas duas feiras livres no bairro 'bairro1'
         Quando o busco por bairro='bairro1'
@@ -355,13 +342,13 @@ class TestApp(unittest.TestCase):
         feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
                                             .with_bairro(self.BAIRRO1) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO1)
+        valor_atual = self.app.get('/feiras?bairro=' + self.BAIRRO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar20(self):
+    def test_regiao_multiplas_feiras(self):
         '''
         Dadas uma feira livre na região 'regiao1', no distrito 'distrito1', \
         no bairro 'bairro1' e nome 'nome1';
@@ -395,13 +382,13 @@ class TestApp(unittest.TestCase):
                                             .with_bairro(self.BAIRRO2) \
                                             .with_nome(self.NOME3) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO1)
+        valor_atual = self.app.get('/feiras?regiao5=' + self.REGIAO1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar21(self):
+    def test_distrito_multiplas_feiras(self):
         '''
         Dadas uma feira livre na região 'regiao1', no distrito 'distrito1', \
         no bairro 'bairro1' e nome 'nome1';
@@ -435,13 +422,13 @@ class TestApp(unittest.TestCase):
                                             .with_bairro(self.BAIRRO2) \
                                             .with_nome(self.NOME3) \
                                             .build()
-        esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
+        valor_esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/feiras?distrito=' + self.DISTRITO2)
+        valor_atual = self.app.get('/feiras?distrito=' + self.DISTRITO2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar22(self):
+    def test_nome_semelhante_multiplas_feiras(self):
         '''
         Dadas uma feira livre na região 'regiao1', no distrito 'distrito1', \
         no bairro 'bairro1' e nome 'nome1';
@@ -475,13 +462,13 @@ class TestApp(unittest.TestCase):
                                             .with_bairro(self.BAIRRO2) \
                                             .with_nome(self.NOME3) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?nome=' + self.NOME1)
+        valor_atual = self.app.get('/feiras?nome=' + self.NOME1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar23(self):
+    def test_bairro_multiplas_feiras(self):
         '''
         Dadas uma feira livre na região 'regiao1', no distrito 'distrito1', \
         no bairro 'bairro1' e nome 'nome1';
@@ -515,13 +502,13 @@ class TestApp(unittest.TestCase):
                                             .with_bairro(self.BAIRRO2) \
                                             .with_nome(self.NOME3) \
                                             .build()
-        esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
+        valor_esperado = {'feiras': [feira_livre2.dict, feira_livre3.dict]}
         # Act
-        resposta = self.app.get('/feiras?bairro=' + self.BAIRRO2)
+        valor_atual = self.app.get('/feiras?bairro=' + self.BAIRRO2)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar30(self):
+    def test_regiao_distrito_nome_bairro_multiplas_feiras(self):
         '''
         Dadas uma feira livre na região 'regiao1', no distrito 'distrito1', \
         no bairro 'bairro1' e nome 'nome1';
@@ -556,16 +543,16 @@ class TestApp(unittest.TestCase):
                                             .with_bairro(self.BAIRRO2) \
                                             .with_nome(self.NOME3) \
                                             .build()
-        esperado = {'feiras': [feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras?regiao5=' + self.REGIAO2 +
-                                '&distrito=' + self.DISTRITO2 +
-                                '&bairro=' + self.BAIRRO2 +
-                                '&nome=' + self.NOME1)
+        valor_atual = self.app.get('/feiras?regiao5=' + self.REGIAO2 +
+                                   '&distrito=' + self.DISTRITO2 +
+                                   '&bairro=' + self.BAIRRO2 +
+                                   '&nome=' + self.NOME1)
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_buscar31(self):
+    def test_sem_parametros(self):
         '''
         Dadas duas feiras livres
         Quando busco por nenhum dado em particular
@@ -577,13 +564,30 @@ class TestApp(unittest.TestCase):
                                             .build()
         feira_livre2 = FeiraLivreBuilder(bd).with_registro(self.REGISTRO2) \
                                             .build()
-        esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
+        valor_esperado = {'feiras': [feira_livre1.dict, feira_livre2.dict]}
         # Act
-        resposta = self.app.get('/feiras')
+        valor_atual = self.app.get('/feiras')
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
 
-    def test_remover1(self):
+
+class TestRemover(unittest.TestCase):
+    ''' Mantém os testes relacionados à remoção de uma feira. '''
+    REGISTRO1, REGISTRO2 = '123', '456'
+
+    def setUp(self):
+        app.config.from_object('config.TestingConfig')
+        self.app = app.test_client()
+        self.contexto = app.app_context()
+        self.contexto.push()
+        bd.create_all()
+
+    def tearDown(self):
+        bd.session.remove()
+        bd.drop_all()
+        self.contexto.pop()
+
+    def test_sucesso(self):
         '''
         Dada uma feira livre com registro '123'
         Quando removo a feira com registro '123'
@@ -593,18 +597,18 @@ class TestApp(unittest.TestCase):
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
                                            .build()
-        esperado = {'feira': feira_livre.dict}
+        valor_esperado = {'feira': feira_livre.dict}
         # Act
-        resposta = self.app.delete('/feira?registro=' + self.REGISTRO1)
+        valor_atual = self.app.delete('/feira?registro=' + self.REGISTRO1)
         feira_livre = FeiraLivre.query \
                                 .filter(FeiraLivre.registro == self.REGISTRO1)\
                                 .first()
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 200)
         self.assertIsNone(feira_livre)
 
-    def test_remover2(self):
+    def test_registro_nao_existente(self):
         '''
         Dada uma feira livre com registro '123'
         Quando removo a feira com registro '456'
@@ -614,21 +618,56 @@ class TestApp(unittest.TestCase):
         # Arrange
         feira_livre = FeiraLivreBuilder(bd).with_registro(self.REGISTRO1) \
                                            .build()
-        esperado = {'mensagem': 'Feira livre com registro {0} não existe.'
-                                .format(self.REGISTRO2),
-                    'erro': 404}
+        valor_esperado = {'mensagem': 'Feira livre com registro {0} '
+                                      'não existe.'.format(self.REGISTRO2),
+                          'erro': 404}
         # Act
-        resposta = self.app.delete('/feira?registro=' + self.REGISTRO2)
+        valor_atual = self.app.delete('/feira?registro=' + self.REGISTRO2)
         feira_livre = FeiraLivre.query \
                                 .filter(FeiraLivre.registro == self.REGISTRO1)\
                                 .first()
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 404)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 404)
         self.assertIsNotNone(feira_livre)
 
+
+class TestAdicionar(unittest.TestCase):
+    ''' Mantém os testes relacionados à inclusão de nova feira. '''
+    JSON = {
+        'identificador': 1,
+        'latitude': -123,
+        'longitude': 456,
+        'setor_censitario': 'setor',
+        'area_ponderacao': 'area',
+        'cod_distrito': 'codd',
+        'distrito': 'dist',
+        'cod_subpref': 'cods',
+        'subprefeitura': 'subpref',
+        'regiao5': 'reg1',
+        'regiao8': 'reg2',
+        'nome': 'nome',
+        'registro': 'reg',
+        'logradouro': 'logradouro',
+        'numero': 'num',
+        'bairro': 'bairro',
+        'referencia': 'referencia'
+    }
+
+    def setUp(self):
+        app.config.from_object('config.TestingConfig')
+        self.app = app.test_client()
+        self.contexto = app.app_context()
+        self.contexto.push()
+        bd.create_all()
+
+    def tearDown(self):
+        bd.session.remove()
+        bd.drop_all()
+        self.contexto.pop()
+
     @mock.patch('src.basedados.bd.session.commit')
-    def test_adicionar1(self, mock_commit):
+    def test_sucesso(self, mock_commit):
         '''
         Dado um json com todos os dados necessários para o cadastro \
         de uma feira livre
@@ -636,81 +675,44 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira inserida.
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         feira_livre = FeiraLivreBuilder().from_dict(dado).build()
-        esperado = {'feira': feira_livre.dict}
+        valor_esperado = {'feira': feira_livre.dict}
         # Act
-        resposta = self.app.post('/feira', data=json.dumps(dado))
-        feira_livre = FeiraLivre.query \
-                                .filter(FeiraLivre.registro == self.REGISTRO1)\
-                                .first()
+        valor_atual = self.app.post('/feira', data=json.dumps(dado))
         # Assert
         mock_commit.assert_called_once()
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 200)
+        self.assertEqual(FeiraLivre.query.count(), 1)
 
     @mock.patch('src.basedados.bd.session.rollback')
-    def test_adicionar2(self, mock_rollback):
+    def test_violacao_indice_unico(self, mock_rollback):
         '''
         Dados uma feira livre cadastrada
-              um json para cadastro de nova feira em que há \
-        violação de índice unico.
+              um json para cadastro de nova feira em que há violação de \
+        índice único.
         Quando adiciono a feira
         Então devo receber um JSON contendo a identificação do(s) campo(s) \
         incorreto(s).
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         FeiraLivreBuilder(bd).from_dict(dado).build()
-        dado['registro'] = self.REGISTRO2
-        dado['distrito'] = self.DISTRITO2  # quebra do índice de Distrito
+        dado['registro'] += 'x'  # novo registro
+        dado['distrito'] += 'x'  # quebra do índice de Distrito
         FeiraLivreBuilder().from_dict(dado).build()
-        esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter valores diferentes em codigo.',
-                    'erro': 400}
+        valor_esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter '
+                                      'valores diferentes em codigo.',
+                          'erro': 400}
         # Act
-        resposta = self.app.post('/feira', data=json.dumps(dado))
+        valor_atual = self.app.post('/feira', data=json.dumps(dado))
         # Assert
         mock_rollback.assert_called_once()
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 400)
 
-    def test_adicionar3(self):
+    def test_dado_obrigatorio_nao_existente(self):
         '''
         Dado um json com alguns dados faltando para o cadastro \
         de uma feira livre
@@ -719,75 +721,79 @@ class TestApp(unittest.TestCase):
         que estão faltando.
         '''
         # Arrange
-        dado = {
-            # 'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            # 'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
-        esperado = {'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): distrito, identificador.',
-                    'erro': 400}
+        # Arrange
+        dado = copy(self.JSON)
+        dado.pop('identificador', None)
+        dado.pop('distrito', None)
+        valor_esperado = {'mensagem': 'Campo(s) obrigatório(s) não '
+                                      'encontrado(s): distrito, '
+                                      'identificador.',
+                          'erro': 400}
         # Act
-        resposta = self.app.post('/feira', data=json.dumps(dado))
+        valor_atual = self.app.post('/feira', data=json.dumps(dado))
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 400)
 
-    def test_adicionar4(self):
+    def test_registro_existente(self):
         '''
         Dados uma feira livre cadastrada
-              um json com todos os dados necessários para o \
-        cadastro da feira livre com mesmo registro da cadastrada
+              um json com todos os dados necessários para o cadastro \
+        da feira livre com mesmo registro da cadastrada
         Quando adiciono a feira
         Então devo receber um JSON contendo a a mensagem de que \
         a feira já existe.
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         FeiraLivreBuilder(bd).from_dict(dado).build()
         FeiraLivreBuilder().from_dict(dado).build()
-        esperado = {'mensagem': 'Feira livre com registro {0} já existe.'
-                                .format(self.REGISTRO1),
-                    'erro': 400}
+        valor_esperado = {'mensagem': 'Feira livre com registro {0} já existe.'
+                                      .format(dado['registro']),
+                          'erro': 400}
         # Act
-        resposta = self.app.post('/feira', data=json.dumps(dado))
+        valor_atual = self.app.post('/feira', data=json.dumps(dado))
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 400)
+
+
+class TestAlterar(unittest.TestCase):
+    ''' Mantém os testes relacionados à alteração de uma feira. '''
+    JSON = {
+        'identificador': 1,
+        'latitude': -123,
+        'longitude': 456,
+        'setor_censitario': 'setor',
+        'area_ponderacao': 'area',
+        'cod_distrito': 'codd',
+        'distrito': 'dist',
+        'cod_subpref': 'cods',
+        'subprefeitura': 'subpref',
+        'regiao5': 'reg1',
+        'regiao8': 'reg2',
+        'nome': 'nome',
+        'registro': 'reg',
+        'logradouro': 'logradouro',
+        'numero': 'num',
+        'bairro': 'bairro',
+        'referencia': 'referencia'
+    }
+
+    def setUp(self):
+        app.config.from_object('config.TestingConfig')
+        self.app = app.test_client()
+        self.contexto = app.app_context()
+        self.contexto.push()
+        bd.create_all()
+
+    def tearDown(self):
+        bd.session.remove()
+        bd.drop_all()
+        self.contexto.pop()
 
     @mock.patch('src.basedados.bd.session.commit')
-    def test_alterar1(self, mock_commit):
+    def test_sucesso(self, mock_commit):
         '''
         Dados uma feira livre cadastrada
               um json com todos os dados necessários para a \
@@ -796,81 +802,46 @@ class TestApp(unittest.TestCase):
         Então devo receber um JSON contendo a feira alterada.
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         FeiraLivreBuilder(bd).from_dict(dado).build()
-        dado['regiao5'] = self.REGIAO2  #  alteração
+        dado['regiao5'] += 'x'  #  alteração
         feira_livre = FeiraLivreBuilder().from_dict(dado).build()
-        esperado = {'feira': feira_livre.dict}
+        valor_esperado = {'feira': feira_livre.dict}
         # Act
-        resposta = self.app.put('/feira', data=json.dumps(dado))
+        valor_atual = self.app.put('/feira', data=json.dumps(dado))
         # Assert
         mock_commit.assert_called()
         self.assertEqual(mock_commit.call_count, 2)
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 200)
         self.assertEqual(FeiraLivre.query.count(), 1)
 
     @mock.patch('src.basedados.bd.session.rollback')
-    def test_alterar2(self, mock_rollback):
+    def test_violacao_indice_unico(self, mock_rollback):
         '''
         Dados uma feira livre cadastrada
-              um json para alteração da feira em que há \
-        violação de índice unico.
+              um json para alteração da feira em que há violação de \
+        índice único.
         Quando altero a feira
         Então devo receber um JSON contendo a identificação do(s) campo(s) \
         incorreto(s).
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         FeiraLivreBuilder(bd).from_dict(dado).build()
-        dado['distrito'] = self.DISTRITO2  # quebra do índice de Distrito
+        dado['distrito'] += 'x'  # quebra do índice de Distrito
         FeiraLivreBuilder().from_dict(dado).build()
-        esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter valores diferentes em codigo.',
-                    'erro': 400}
+        valor_esperado = {'mensagem': 'Um(a) novo(a) Distrito deve conter '
+                                      'valores diferentes em codigo.',
+                          'erro': 400}
         # Act
-        resposta = self.app.put('/feira', data=json.dumps(dado))
+        valor_atual = self.app.put('/feira', data=json.dumps(dado))
         # Assert
         mock_rollback.assert_called_once()
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 400)
 
-    def test_alterar3(self):
+    def test_dado_obrigatorio_nao_existente(self):
         '''
         Dado um json com alguns dados faltando para a alteração \
         de uma feira livre
@@ -879,71 +850,39 @@ class TestApp(unittest.TestCase):
         que estão faltando.
         '''
         # Arrange
-        dado = {
-            # 'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            # 'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
-        esperado = {'mensagem': 'Campo(s) obrigatório(s) não encontrado(s): distrito, identificador.',
-                    'erro': 400}
+        dado = copy(self.JSON)
+        dado.pop('identificador', None)
+        dado.pop('distrito', None)
+        valor_esperado = {'mensagem': 'Campo(s) obrigatório(s) não '
+                                      'encontrado(s): distrito, '
+                                      'identificador.',
+                          'erro': 400}
         # Act
-        resposta = self.app.put('/feira', data=json.dumps(dado))
+        valor_atual = self.app.put('/feira', data=json.dumps(dado))
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 400)
 
-    def test_alterar4(self):
+    def test_registro_nao_existente(self):
         '''
-        Dados um json com todos os dados necessários para a \
-        alteração da feira livre
+        Dados um json com todos os dados necessários para a alteração \
+        da feira livre
         Quando altero a feira
         Então devo receber um JSON contendo a mensagem de que \
         a feira não existe.
         '''
         # Arrange
-        dado = {
-            'identificador': self.IDENTIFICADOR1,
-            'latitude': -123,
-            'longitude': 456,
-            'setor_censitario': 'setor',
-            'area_ponderacao': 'area',
-            'cod_distrito': 'coddist',
-            'distrito': self.DISTRITO1,
-            'cod_subpref': 'codsubpref',
-            'subprefeitura': 'subpref',
-            'regiao5': self.REGIAO1,
-            'regiao8': self.REGIAO2,
-            'nome': self.NOME1,
-            'registro': self.REGISTRO1,
-            'logradouro': 'logradouro',
-            'numero': 'num',
-            'bairro': self.BAIRRO1,
-            'referencia': 'referencia'
-        }
+        dado = copy(self.JSON)
         feira_livre = FeiraLivreBuilder().from_dict(dado).build()
         # Act
-        esperado = {'mensagem': 'Feira livre com registro {0} não existe.'
-                                .format(self.REGISTRO1),
-                    'erro': 404}
+        valor_esperado = {'mensagem': 'Feira livre com registro {0} '
+                                      'não existe.'.format(dado['registro']),
+                          'erro': 404}
         # Act
-        resposta = self.app.put('/feira', data=json.dumps(dado))
+        valor_atual = self.app.put('/feira', data=json.dumps(dado))
         # Assert
-        self.assertEqual(json.loads(resposta.data), esperado)
-        self.assertEqual(resposta.status_code, 404)
+        self.assertEqual(json.loads(valor_atual.data), valor_esperado)
+        self.assertEqual(valor_atual.status_code, 404)
 
 
 if __name__ == '__main__':
