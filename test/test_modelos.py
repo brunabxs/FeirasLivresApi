@@ -4,6 +4,7 @@ import unittest
 import unittest.mock as mock
 from app import app
 from src.basedados import bd
+from src.excecoes import ViolacaoIndiceUnico
 from src.modelos import converter_dict, buscar_ou_criar
 from src.modelos import Subprefeitura, Distrito, Regiao5, Regiao8
 from src.modelos import Bairro, Logradouro, Endereco, FeiraLivre
@@ -72,6 +73,42 @@ class TestBuscarOuCriar(unittest.TestCase):
         self.assertEqual(valor_atual.codigo, '123')
         self.assertEqual(valor_atual.id, 1)
         self.assertEqual(Subprefeitura.query.count(), 1)
+
+    def test_criar_violacao_indice_unico_indice_de_uma_coluna(self):
+        '''
+        Dado um elemento com atributos codigo e nome cujo índice único \
+        é apenas codigo
+        Quando se procura pelo elemento de codigo='123'
+        Então deve lançar exceção ViolacaoIndiceUnico
+        '''
+        # Arrange
+        distrito = Distrito(codigo='123', nome='dist')
+        bd.session.add(distrito)
+        bd.session.commit()
+        bd.session.flush()
+        # Act
+        # Assert
+        self.assertRaises(ViolacaoIndiceUnico, buscar_ou_criar, bd.session,
+                          Distrito, codigo='123', nome='novo dist')
+        self.assertEqual(Distrito.query.count(), 1)
+
+    def test_criar_violacao_indice_unico_indice_varias_colunas(self):
+        '''
+        Dado um elemento vários atributos cujo índice único é formado por \
+        várias colunas
+        Quando se procura pelo elemento de codigo='123'
+        Então deve lançar exceção ViolacaoIndiceUnico
+        '''
+        # Arrange
+        endereco = Endereco()
+        bd.session.add(endereco)
+        bd.session.commit()
+        bd.session.flush()
+        # Act
+        # Assert
+        self.assertRaises(ViolacaoIndiceUnico, buscar_ou_criar, bd.session,
+                          Endereco, referencia='ref')
+        self.assertEqual(Endereco.query.count(), 1)
 
     def test_buscar(self):
         '''

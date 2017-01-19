@@ -154,23 +154,23 @@ def criar_ou_atualizar(json, feira_livre=None):
         distrito = buscar_ou_criar(bd.session, Distrito,
                                    codigo=json['cod_distrito'],
                                    nome=json['distrito'],
-                                   subprefeitura=subprefeitura)
+                                   subprefeitura_id=subprefeitura.id)
         regiao5 = buscar_ou_criar(bd.session, Regiao5,
                                   nome=json['regiao5'])
         regiao8 = buscar_ou_criar(bd.session, Regiao8,
                                   nome=json['regiao8'])
         bairro = buscar_ou_criar(bd.session, Bairro,
                                  nome=json['bairro'],
-                                 distrito=distrito)
+                                 distrito_id=distrito.id)
         logradouro = buscar_ou_criar(bd.session, Logradouro,
                                      nome=json['logradouro'])
         endereco = buscar_ou_criar(bd.session, Endereco,
-                                   logradouro=logradouro,
+                                   logradouro_id=logradouro.id,
                                    numero=json['numero'],
                                    referencia=json['referencia'],
-                                   bairro=bairro,
-                                   regiao5=regiao5,
-                                   regiao8=regiao8,
+                                   bairro_id=bairro.id,
+                                   regiao5_id=regiao5.id,
+                                   regiao8_id=regiao8.id,
                                    latitude=json['latitude'],
                                    longitude=json['longitude'],
                                    setor_censitario=json['setor_censitario'],
@@ -180,21 +180,19 @@ def criar_ou_atualizar(json, feira_livre=None):
                                           identificador=json['identificador'],
                                           nome=json['nome'],
                                           registro=json['registro'],
-                                          endereco=endereco)
+                                          endereco_id=endereco.id)
         else:
             feira_livre.identificador = json['identificador']
             feira_livre.nome = json['nome']
             feira_livre.endereco = endereco
         bd.session.commit()
         return feira_livre
-    except IntegrityError as erro:
+    except ViolacaoIndiceUnico as erro:
         bd.session.rollback()
-        if 'UNIQUE constraint failed' in erro.args[0]:
-            entidade, colunas = identificar_entidade_colunas(erro.args[0])
-            raise ViolacaoIndiceUnico('Um(a) novo(a) {0} deve conter valores diferentes em {1}.'
-                                      .format(entidade, ', '.join(colunas)))
-        else:
-            raise erro
+        raise erro
+    except Exception as e:
+        bd.session.rollback()
+        raise e
 
 
 def verificar_campos_obrigatorios(json):

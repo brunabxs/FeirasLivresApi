@@ -2,6 +2,7 @@
 dados. '''
 
 from src.basedados import bd
+from src.excecoes import ViolacaoIndiceUnico
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
@@ -33,7 +34,7 @@ def buscar_ou_criar(sessao, modelo, commit=False, **kwargs):
     Parâmetros
     ==========
     sessao [Session] -- sessão.
-    modelo [Model] -- modelo.
+    modelo [Modelo] -- modelo.
     commit [bool] -- informa se faz ou não commit na sessão.
     kwargs -- informações pelas qual a entidade será \
     procurada ou criada.
@@ -41,12 +42,24 @@ def buscar_ou_criar(sessao, modelo, commit=False, **kwargs):
     Retorno
     =======
     instância do modelo que foi encontrada ou criada.
+
+    Exceções/Erros
+    ==============
+    ViolacaoIndiceUnico
     '''
     consulta = sessao.query(modelo).filter_by(**kwargs)
     instancia = consulta.first()
     if instancia:
         return instancia
     else:
+        ocorreu_violacao, indices = verificar_violacao_indice_unico(sessao,
+                                                                    modelo,
+                                                                    **kwargs)
+        if ocorreu_violacao:
+            raise ViolacaoIndiceUnico('Um(a) novo(a) {0} deve conter valores '
+                                      'diferentes em {1}.'
+                                      .format(modelo.__table__.name,
+                                              ', '.join(indices)))
         instancia = modelo(**kwargs)
         sessao.add(instancia)
         if commit:
@@ -55,7 +68,74 @@ def buscar_ou_criar(sessao, modelo, commit=False, **kwargs):
         return instancia
 
 
-class Subprefeitura(bd.Model):
+def verificar_violacao_indice_unico(sessao, modelo, **kwargs):
+    '''
+    Verifica se existe violação da restrição de índice único e quais \
+    as colunas que estão relacionadas com essa violação.
+
+    Parâmetros
+    ==========
+    sessao [Session] -- sessão.
+    modelo [Modelo] -- modelo.
+    kwargs -- informações.
+
+    Retorno
+    =======
+    [bool, List] -- True se as informações fornecidas geram uma instancia \
+    que tem violação do índice único; False caso contrário. A lista contém \
+    os nomes das colunas cujos valores violaram a restrição de índice.
+    '''
+    indices = modelo.recuperar_indices_chave_unica()
+    dados_indice = dict()
+    for i in indices:
+        if isinstance(i, list):
+            for indice in i:
+                if indice in kwargs:
+                    dados_indice[indice] = kwargs[indice]
+                else:
+                    dados_indice[indice] = None
+        else:
+            if i in kwargs:
+                dados_indice[i] = kwargs[i]
+            else:
+                dados_indice[i] = None
+        instancia = sessao.query(modelo).filter_by(**dados_indice).first()
+        if instancia is not None and isinstance(i, list):
+            return True, i
+        if instancia is not None:
+            return True, [i]
+    return False, []
+
+
+class Modelo(bd.Model):
+    ''' Classe abstrata que deve ser estendida pelos modelos da aplicação. '''
+    __abstract__ = True
+
+    @classmethod
+    def recuperar_indices_chave_unica(cls):
+        '''
+        Recupera as colunas que pertencem a um índice de chave única.
+
+        Retorno
+        =======
+        List [str, tuple(str)] -- nomes das colunas que pertencem a um \
+        índice de chave única.
+        '''
+        indices_chave_unica = list()
+        for coluna in cls.__table__.columns:
+            if coluna.unique:
+                indices_chave_unica.append(coluna.name)
+        if hasattr(cls, '__table_args__'):
+            for arg in cls.__table_args__:
+                if type(arg) is UniqueConstraint:
+                    varias_colunas = list()
+                    for coluna in arg.columns:
+                        varias_colunas.append(coluna.name)
+                    indices_chave_unica.append(varias_colunas)
+        return indices_chave_unica
+
+
+class Subprefeitura(Modelo):
     '''
     Representa a subprefeitura.
 
@@ -83,7 +163,7 @@ class Subprefeitura(bd.Model):
                 'nome': self.nome}
 
 
-class Distrito(bd.Model):
+class Distrito(Modelo):
     '''
     Representa o distrito municipal.
 
@@ -116,7 +196,7 @@ class Distrito(bd.Model):
                 'subprefeitura': converter_dict(self.subprefeitura)}
 
 
-class Regiao5(bd.Model):
+class Regiao5(Modelo):
     '''
     Representa a região conforme divisão do Município em cinco áreas.
 
@@ -141,7 +221,7 @@ class Regiao5(bd.Model):
         return {'nome': self.nome}
 
 
-class Regiao8(bd.Model):
+class Regiao8(Modelo):
     '''
     Representa a região conforme divisão do Município em oito áreas.
 
@@ -166,7 +246,7 @@ class Regiao8(bd.Model):
         return {'nome': self.nome}
 
 
-class Bairro(bd.Model):
+class Bairro(Modelo):
     '''
     Representa o bairro.
 
@@ -197,7 +277,7 @@ class Bairro(bd.Model):
                 'distrito': converter_dict(self.distrito)}
 
 
-class Logradouro(bd.Model):
+class Logradouro(Modelo):
     '''
     Representa o logradouro.
 
@@ -222,7 +302,7 @@ class Logradouro(bd.Model):
         return {'nome': self.nome}
 
 
-class Endereco(bd.Model):
+class Endereco(Modelo):
     '''
     Representa o endereço.
 
@@ -289,7 +369,7 @@ class Endereco(bd.Model):
                 'area_ponderacao': self.area_ponderacao}
 
 
-class FeiraLivre(bd.Model):
+class FeiraLivre(Modelo):
     '''
     Representa a feira livre.
 
